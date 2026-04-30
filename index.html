@@ -387,6 +387,21 @@
       touch-action: none; flex-shrink: 0; opacity: 0.6;
     }
     .drag-handle:active { cursor: grabbing; }
+    .btn-pass {
+      display: block;
+      width: 100%;
+      padding: 11px;
+      margin-top: 8px;
+      border-radius: 18px;
+      border: none;
+      background: none;
+      color: var(--muted);
+      font-size: 0.85rem;
+      letter-spacing: 0.12em;
+      cursor: pointer;
+      transition: color 0.15s;
+    }
+    .btn-pass:active { color: var(--text); }
     .btn-edit {
       background: none; border: 1px solid var(--card-border); color: var(--muted);
       font-size: 0.85rem; cursor: pointer; padding: 6px 10px; border-radius: 8px;
@@ -550,6 +565,7 @@
 
     <button class="btn-primary" id="btnAction" onclick="handleAction()">▶ 開始</button>
     <button class="btn-secondary" id="btnDone" onclick="markDone()">✓ 做完了！</button>
+    <button class="btn-pass" onclick="passEx()">pass</button>
   </div>
 </div>
 
@@ -797,6 +813,19 @@ function beep() {
 /* ══════════════════════════════════════════════
    MARK DONE
 ══════════════════════════════════════════════ */
+function passEx() {
+  clearInterval(ticker);
+  running = false;
+  const card = document.getElementById('exerciseCard');
+  card.classList.remove('slide-in');
+  card.classList.add('slide-out');
+  setTimeout(()=>{
+    card.classList.remove('slide-out');
+    document.getElementById('cardOverlay').classList.remove('active');
+    document.getElementById('drawZone').classList.remove('hidden');
+  }, 360);
+}
+
 function markDone() {
   clearInterval(ticker);
   running = false;
