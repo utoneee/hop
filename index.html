@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>運動抽籤</title>
+  <style>
+    :root {
+      --bg:          #080f09;
+      --bg2:         #0e1a0f;
+      --green:       #4ade80;
+      --green-mid:   #22c55e;
+      --green-dark:  #16a34a;
+      --green-glow:  rgba(74,222,128,0.28);
+      --text:        #f0fff4;
+      --muted:       #5a8f68;
+      --card-bg:     #111e13;
+      --card-border: rgba(74,222,128,0.18);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    html, body { height: 100%; overflow: hidden; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Noto Sans TC', sans-serif;
+      background: radial-gradient(ellipse at 50% 0%, #0d2210 0%, var(--bg) 68%);
+      color: var(--text);
+      min-height: 100vh;
+      touch-action: manipulation;
+      user-select: none;
+    }
+
+    /* ══════════════════════════════════
+       MAIN SCREEN
+    ══════════════════════════════════ */
+    #app {
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Subtle grid lines decoration */
+    #app::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(74,222,128,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(74,222,128,0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+    }
+
+    /* ── Header ── */
+    .header {
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      padding: 20px 22px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 10;
+    }
+    .header-title {
+      font-size: 0.85rem;
+      color: var(--muted);
+      letter-spacing: 0.16em;
+      font-weight: 600;
+    }
+    .btn-icon {
+      background: none;
+      border: 1px solid var(--card-border);
+      border-radius: 50%;
+      width: 42px; height: 42px;
+      color: var(--muted);
+      font-size: 1rem;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.18s;
+    }
+    .btn-icon:active { transform: scale(0.88); background: var(--card-bg); }
+
+    /* ── Draw Zone ── */
+    .draw-zone {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+      transition: opacity 0.25s, transform 0.25s;
+      position: relative;
+      z-index: 1;
+    }
+    .draw-zone.hidden { opacity: 0; pointer-events: none; transform: scale(0.96); }
+
+    /* Pulse ring behind the button */
+    .draw-ring {
+      position: absolute;
+      width: 200px; height: 200px;
+      border-radius: 50%;
+      border: 1.5px solid rgba(74,222,128,0.2);
+      animation: ringPulse 2.8s ease-in-out infinite;
+      pointer-events: none;
+    }
+    .draw-ring:nth-child(2) { animation-delay: 0.9s; width: 250px; height: 250px; border-color: rgba(74,222,128,0.1); }
+    @keyframes ringPulse {
+      0%, 100% { transform: scale(1);   opacity: 1; }
+      50%       { transform: scale(1.06); opacity: 0.5; }
+    }
+
+    .btn-draw {
+      width: 156px; height: 156px;
+      border-radius: 50%;
+      background: conic-gradient(from 180deg, #15803d, #22c55e, #4ade80, #22c55e, #15803d);
+      border: none;
+      color: #fff;
+      font-size: 1.5rem;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      cursor: pointer;
+      box-shadow:
+        0 0 0 6px rgba(34,197,94,0.12),
+        0 0 40px var(--green-glow),
+        0 10px 36px rgba(0,0,0,0.5);
+      transition: transform 0.13s, box-shadow 0.13s;
+      position: relative;
+      z-index: 1;
+    }
+    .btn-draw:active {
+      transform: scale(0.91);
+      box-shadow: 0 0 16px var(--green-glow), 0 4px 16px rgba(0,0,0,0.4);
+    }
+
+    .draw-hint {
+      color: var(--muted);
+      font-size: 0.82rem;
+      letter-spacing: 0.1em;
+    }
+
+    /* ══════════════════════════════════
+       EXERCISE CARD (bottom sheet)
+    ══════════════════════════════════ */
+    .card-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 20;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      pointer-events: none;
+    }
+    .card-overlay.active { pointer-events: auto; }
+
+    .exercise-card {
+      width: 100%;
+      max-width: 500px;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-bottom: none;
+      border-radius: 28px 28px 0 0;
+      padding: 28px 26px 52px;
+      transform: translateY(110%);
+      transition: transform 0.42s cubic-bezier(0.34, 1.42, 0.64, 1);
+      box-shadow: 0 -6px 48px rgba(0,0,0,0.55), 0 0 80px rgba(74,222,128,0.06);
+    }
+    .exercise-card.slide-in { transform: translateY(0); }
+    .exercise-card.slide-out {
+      transform: translateY(110%) scale(0.82);
+      transition: transform 0.32s cubic-bezier(0.4,0,0.8,1), opacity 0.32s;
+      opacity: 0;
+    }
+
+    /* Drag handle */
+    .card-handle {
+      width: 40px; height: 4px;
+      background: rgba(74,222,128,0.2);
+      border-radius: 2px;
+      margin: 0 auto 22px;
+    }
+
+    .card-emoji { font-size: 3.8rem; text-align: center; margin-bottom: 10px; line-height: 1; }
+    .card-name  { font-size: 2rem; font-weight: 800; text-align: center; color: var(--green); margin-bottom: 6px; }
+    .card-meta  { text-align: center; color: var(--muted); font-size: 0.88rem; margin-bottom: 24px; }
+
+    /* Auto-start toggle */
+    .auto-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      margin-bottom: 22px;
+      cursor: pointer;
+    }
+    .auto-label { font-size: 0.8rem; color: var(--muted); }
+    .toggle {
+      width: 38px; height: 21px;
+      background: #1c3320;
+      border-radius: 11px;
+      position: relative;
+      transition: background 0.22s;
+      flex-shrink: 0;
+    }
+    .toggle.on { background: var(--green-dark); }
+    .toggle::after {
+      content: '';
+      position: absolute;
+      top: 2.5px; left: 2.5px;
+      width: 16px; height: 16px;
+      border-radius: 50%;
+      background: #fff;
+      transition: transform 0.22s;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+    }
+    .toggle.on::after { transform: translateX(17px); }
+
+    /* Timer display */
+    .timer-wrap {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+    .timer-num {
+      font-size: 4.4rem;
+      font-weight: 900;
+      font-variant-numeric: tabular-nums;
+      line-height: 1;
+      color: var(--text);
+      letter-spacing: -0.02em;
+      transition: color 0.3s;
+    }
+    .timer-num.done-color { color: var(--green); }
+    .timer-num.count-size { font-size: 3.6rem; }
+    .timer-unit { font-size: 0.78rem; color: var(--muted); letter-spacing: 0.1em; margin-top: 4px; }
+
+    /* Buttons */
+    .btn-primary {
+      display: block;
+      width: 100%;
+      padding: 17px;
+      border-radius: 18px;
+      border: none;
+      background: var(--green-dark);
+      color: #fff;
+      font-size: 1.08rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.12s, background 0.2s, box-shadow 0.2s;
+      margin-bottom: 12px;
+    }
+    .btn-primary:active { transform: scale(0.96); }
+    .btn-primary.paused { background: #065f46; }
+    .btn-primary.danger  { background: #b91c1c; }
+    .btn-primary.ring {
+      animation: btnRing 1.1s ease-in-out infinite;
+    }
+    @keyframes btnRing {
+      0%, 100% { box-shadow: 0 0 0 0   rgba(74,222,128,0.5); }
+      50%       { box-shadow: 0 0 0 10px rgba(74,222,128,0);   }
+    }
+
+    .btn-secondary {
+      display: block;
+      width: 100%;
+      padding: 14px;
+      border-radius: 18px;
+      border: 1px solid var(--card-border);
+      background: transparent;
+      color: var(--muted);
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.18s;
+    }
+    .btn-secondary:active { background: rgba(74,222,128,0.06); transform: scale(0.97); }
+    .btn-secondary.lit { border-color: var(--green); color: var(--green); }
+
+    /* ══════════════════════════════════
+       DONE STACK (bottom-right corner)
+    ══════════════════════════════════ */
+    .done-stack {
+      position: fixed;
+      bottom: 26px; right: 22px;
+      z-index: 30;
+      cursor: pointer;
+      display: none;
+    }
+    .done-stack.show { display: block; }
+
+    .stack-pile {
+      position: relative;
+      width: 54px; height: 68px;
+    }
+    .mini-card {
+      position: absolute;
+      width: 50px; height: 62px;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 9px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.5rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+    }
+    .stack-badge {
+      position: absolute;
+      top: -9px; right: -9px;
+      background: var(--green);
+      color: #071009;
+      font-size: 0.7rem;
+      font-weight: 800;
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 0 8px rgba(74,222,128,0.5);
+    }
+
+    /* ══════════════════════════════════
+       BOTTOM SHEETS (Settings / Done)
+    ══════════════════════════════════ */
+    .sheet-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 40;
+      background: rgba(0,0,0,0.65);
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.28s;
+    }
+    .sheet-backdrop.open { opacity: 1; pointer-events: auto; }
+
+    .sheet-body {
+      width: 100%;
+      max-width: 500px;
+      background: #0c1a0e;
+      border: 1px solid var(--card-border);
+      border-bottom: none;
+      border-radius: 28px 28px 0 0;
+      padding: 22px 20px 52px;
+      max-height: 82vh;
+      overflow-y: auto;
+      transform: translateY(36px);
+      transition: transform 0.28s;
+      -webkit-overflow-scrolling: touch;
+    }
+    .sheet-backdrop.open .sheet-body { transform: translateY(0); }
+
+    .sheet-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    .sheet-title { font-size: 1.05rem; font-weight: 700; color: var(--green); }
+    .btn-close {
+      background: none; border: none;
+      color: var(--muted); font-size: 1.25rem;
+      cursor: pointer; padding: 4px 8px; border-radius: 8px;
+      transition: color 0.15s;
+    }
+    .btn-close:active { color: var(--text); }
+
+    /* Exercise list items */
+    .ex-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 13px 12px;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      margin-bottom: 8px;
+    }
+    .ex-emoji { font-size: 1.5rem; flex-shrink: 0; }
+    .ex-info  { flex: 1; min-width: 0; }
+    .ex-name  { font-size: 0.95rem; font-weight: 700; }
+    .ex-sub   { font-size: 0.76rem; color: var(--muted); margin-top: 2px; }
+    .btn-del  {
+      background: none; border: none; color: #374151;
+      font-size: 1rem; cursor: pointer; padding: 6px 8px; border-radius: 8px;
+      transition: color 0.15s;
+    }
+    .btn-del:active { color: #ef4444; }
+
+    /* Add form */
+    .add-form {
+      margin-top: 16px;
+      padding: 16px;
+      background: var(--card-bg);
+      border: 1px dashed rgba(74,222,128,0.22);
+      border-radius: 16px;
+    }
+    .add-form-title { font-size: 0.82rem; color: var(--muted); font-weight: 700; margin-bottom: 12px; letter-spacing: 0.06em; }
+    .form-row { display: flex; gap: 8px; margin-bottom: 9px; flex-wrap: wrap; }
+    .f-input, .f-select {
+      flex: 1; min-width: 70px;
+      background: var(--bg);
+      border: 1px solid var(--card-border);
+      border-radius: 11px;
+      padding: 11px 12px;
+      color: var(--text);
+      font-size: 0.9rem;
+      outline: none;
+      transition: border-color 0.18s;
+    }
+    .f-input:focus, .f-select:focus { border-color: var(--green-mid); }
+    .f-emoji { max-width: 68px; text-align: center; font-size: 1.2rem; }
+
+    /* Done list */
+    .done-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      margin-bottom: 8px;
+    }
+    .done-check { color: var(--green); font-size: 1rem; flex-shrink: 0; }
+    .done-info  { flex: 1; }
+    .done-name  { font-size: 0.92rem; font-weight: 700; }
+    .done-sub   { font-size: 0.75rem; color: var(--muted); margin-top: 2px; }
+    .done-emoji { font-size: 1.5rem; }
+
+    .empty-msg {
+      text-align: center;
+      color: var(--muted);
+      padding: 36px 0;
+      font-size: 0.88rem;
+      line-height: 1.9;
+    }
+  </style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ── Header ── -->
+  <div class="header">
+    <span class="header-title">運 動 抽 籤</span>
+    <button class="btn-icon" onclick="openSettings()" title="設定">⚙️</button>
+  </div>
+
+  <!-- ── Draw Zone ── -->
+  <div class="draw-zone" id="drawZone">
+    <div class="draw-ring"></div>
+    <div class="draw-ring"></div>
+    <button class="btn-draw" id="btnDraw" onclick="draw()">抽！</button>
+    <div class="draw-hint">點一下抽出今日挑戰</div>
+  </div>
+
+  <!-- ── Completed Stack ── -->
+  <div class="done-stack" id="doneStack" onclick="openDoneSheet()">
+    <div class="stack-pile" id="stackPile"></div>
+    <div class="stack-badge" id="stackBadge">0</div>
+  </div>
+
+</div><!-- #app -->
+
+<!-- ── Exercise Card Overlay ── -->
+<div class="card-overlay" id="cardOverlay">
+  <div class="exercise-card" id="exerciseCard">
+    <div class="card-handle"></div>
+    <div class="card-emoji" id="cEmoji">🤸</div>
+    <div class="card-name"  id="cName">開合跳</div>
+    <div class="card-meta"  id="cMeta">30 秒</div>
+
+    <div class="auto-row" id="autoRow" onclick="toggleAuto()">
+      <span class="auto-label" id="autoLabel">自動開始計時</span>
+      <div class="toggle" id="autoToggle"></div>
+    </div>
+
+    <div class="timer-wrap">
+      <div class="timer-num" id="timerNum">30</div>
+      <div class="timer-unit" id="timerUnit">秒</div>
+    </div>
+
+    <button class="btn-primary" id="btnAction" onclick="handleAction()">▶ 開始</button>
+    <button class="btn-secondary" id="btnDone" onclick="markDone()">✓ 做完了！</button>
+  </div>
+</div>
+
+<!-- ── Settings Sheet ── -->
+<div class="sheet-backdrop" id="settingsSheet" onclick="backdropClose(event,'settingsSheet')">
+  <div class="sheet-body">
+    <div class="sheet-head">
+      <span class="sheet-title">⚙️ 運動清單</span>
+      <button class="btn-close" onclick="closeSheet('settingsSheet')">✕</button>
+    </div>
+    <div id="exListEl"></div>
+    <div class="add-form">
+      <div class="add-form-title">＋ 新增項目</div>
+      <div class="form-row">
+        <input class="f-input f-emoji" id="fEmoji" placeholder="🏃" maxlength="2">
+        <input class="f-input" id="fName"  placeholder="運動名稱（必填）">
+      </div>
+      <div class="form-row">
+        <input class="f-input" id="fValue" placeholder="秒數 或 次數（必填）" type="number" min="1" max="9999">
+        <select class="f-select" id="fType">
+          <option value="timer">⏱ 計時</option>
+          <option value="count">🔢 次數</option>
+        </select>
+      </div>
+      <button class="btn-primary" style="margin-bottom:0" onclick="addEx()">新增</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Done List Sheet ── -->
+<div class="sheet-backdrop" id="doneSheetEl" onclick="backdropClose(event,'doneSheetEl')">
+  <div class="sheet-body">
+    <div class="sheet-head">
+      <span class="sheet-title">✅ 今日完成</span>
+      <button class="btn-close" onclick="closeSheet('doneSheetEl')">✕</button>
+    </div>
+    <div id="doneListEl"></div>
+  </div>
+</div>
+
+<script>
+/* ══════════════════════════════════════════════
+   DATA
+══════════════════════════════════════════════ */
+const DEFAULTS = [
+  { id:1,  emoji:'🤸', name:'開合跳',   type:'timer', value:30  },
+  { id:2,  emoji:'🏃', name:'超慢跑',   type:'timer', value:300 },
+  { id:3,  emoji:'🦵', name:'深蹲',     type:'count', value:20  },
+  { id:4,  emoji:'🧘', name:'全身伸展', type:'timer', value:60  },
+  { id:5,  emoji:'🦿', name:'高抬腿',   type:'timer', value:30  },
+  { id:6,  emoji:'💪', name:'平板支撐', type:'timer', value:30  },
+  { id:7,  emoji:'⚡', name:'原地跳繩', type:'timer', value:60  },
+  { id:8,  emoji:'🫨', name:'抖腿甩手', type:'timer', value:30  },
+  { id:9,  emoji:'🙆', name:'手臂繞圈', type:'count', value:15  },
+  { id:10, emoji:'🚶', name:'原地踏步', type:'timer', value:60  },
+];
+
+/* ══════════════════════════════════════════════
+   STATE
+══════════════════════════════════════════════ */
+let exercises  = lsGet('exercises', DEFAULTS);
+let autoStart  = lsGet('autoStart', false);
+let doneList   = [];       // session only
+let nextId     = exercises.reduce((m,e)=>Math.max(m,e.id),0)+1;
+
+let current    = null;     // current exercise object
+let isCount    = false;    // count mode vs timer mode
+let remaining  = 0;        // seconds left
+let running    = false;    // timer running
+let ticker     = null;     // setInterval id
+let timerDone  = false;    // timer reached 0
+
+/* ══════════════════════════════════════════════
+   LOCAL STORAGE HELPERS
+══════════════════════════════════════════════ */
+function lsGet(k, def) {
+  try { const v=localStorage.getItem(k); return v!==null?JSON.parse(v):def; }
+  catch(e){ return def; }
+}
+function lsSet(k,v){ try{localStorage.setItem(k,JSON.stringify(v));}catch(e){} }
+
+/* ══════════════════════════════════════════════
+   INIT
+══════════════════════════════════════════════ */
+function init() {
+  applyAutoUI();
+}
+
+/* ══════════════════════════════════════════════
+   DRAW
+══════════════════════════════════════════════ */
+function draw() {
+  if (!exercises.length) { alert('清單是空的，請先新增運動！'); return; }
+
+  // Pick random
+  current   = exercises[Math.floor(Math.random()*exercises.length)];
+  isCount   = current.type==='count';
+  timerDone = false;
+  remaining = current.value;
+  clearInterval(ticker);
+  running = false;
+
+  // Populate card
+  document.getElementById('cEmoji').textContent = current.emoji;
+  document.getElementById('cName').textContent  = current.name;
+  document.getElementById('cMeta').textContent  = fmtMeta(current);
+
+  // Timer display
+  const numEl  = document.getElementById('timerNum');
+  const unitEl = document.getElementById('timerUnit');
+  numEl.className = 'timer-num' + (isCount?' count-size':'');
+  numEl.textContent  = isCount ? current.value : fmtTimer(remaining);
+  unitEl.textContent = isCount ? '下' : '';
+
+  // auto-row visibility
+  document.getElementById('autoRow').style.display = isCount ? 'none' : 'flex';
+
+  // Action button
+  const btn = document.getElementById('btnAction');
+  if (isCount) {
+    btn.textContent  = '✓ 計數完成';
+    btn.className    = 'btn-primary';
+  } else {
+    btn.textContent  = '▶ 開始';
+    btn.className    = 'btn-primary';
+  }
+
+  // Done button
+  const dBtn = document.getElementById('btnDone');
+  dBtn.className = 'btn-secondary';
+
+  // Show card
+  const overlay = document.getElementById('cardOverlay');
+  const card    = document.getElementById('exerciseCard');
+  overlay.classList.add('active');
+  document.getElementById('drawZone').classList.add('hidden');
+  requestAnimationFrame(()=>requestAnimationFrame(()=>card.classList.add('slide-in')));
+
+  // Auto-start
+  if (autoStart && !isCount) setTimeout(startTimer, 600);
+}
+
+/* ══════════════════════════════════════════════
+   TIMER
+══════════════════════════════════════════════ */
+function handleAction() {
+  if (isCount) { markDone(); return; }
+  if (timerDone) { resetTimer(); return; }
+  running ? pauseTimer() : startTimer();
+}
+
+function startTimer() {
+  if (remaining <= 0) remaining = current.value;
+  running = true;
+  const btn = document.getElementById('btnAction');
+  btn.textContent = '⏸ 暫停';
+  btn.className   = 'btn-primary danger';
+
+  ticker = setInterval(()=>{
+    remaining--;
+    document.getElementById('timerNum').textContent = fmtTimer(remaining);
+    if (remaining<=0) {
+      clearInterval(ticker);
+      running   = false;
+      timerDone = true;
+      onTimerEnd();
+    }
+  }, 1000);
+}
+
+function pauseTimer() {
+  clearInterval(ticker);
+  running = false;
+  const btn = document.getElementById('btnAction');
+  btn.textContent = '▶ 繼續';
+  btn.className   = 'btn-primary paused';
+}
+
+function resetTimer() {
+  remaining = current.value;
+  timerDone = false;
+  document.getElementById('timerNum').textContent = fmtTimer(remaining);
+  document.getElementById('timerNum').classList.remove('done-color');
+  document.getElementById('btnAction').textContent = '▶ 開始';
+  document.getElementById('btnAction').className   = 'btn-primary';
+  document.getElementById('btnDone').className     = 'btn-secondary';
+}
+
+function onTimerEnd() {
+  document.getElementById('timerNum').textContent = '✓';
+  document.getElementById('timerNum').classList.add('done-color');
+  document.getElementById('btnAction').textContent = '↺ 再來一次';
+  document.getElementById('btnAction').className   = 'btn-primary paused';
+  document.getElementById('btnDone').className     = 'btn-secondary lit';
+  // Haptic + audio
+  try { navigator.vibrate([180,80,180]); } catch(e){}
+  beep();
+}
+
+function beep() {
+  try {
+    const ctx = new (window.AudioContext||window.webkitAudioContext)();
+    [[880,0,0.5],[1100,0.18,0.38]].forEach(([freq,start,end])=>{
+      const o=ctx.createOscillator(), g=ctx.createGain();
+      o.connect(g); g.connect(ctx.destination);
+      o.type='sine'; o.frequency.value=freq;
+      g.gain.setValueAtTime(0.25, ctx.currentTime+start);
+      g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime+end);
+      o.start(ctx.currentTime+start);
+      o.stop(ctx.currentTime+end+0.05);
+    });
+  } catch(e){}
+}
+
+/* ══════════════════════════════════════════════
+   MARK DONE
+══════════════════════════════════════════════ */
+function markDone() {
+  clearInterval(ticker);
+  running = false;
+
+  doneList.push({
+    ...current,
+    at: new Date().toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'})
+  });
+  updateStack();
+
+  // Slide card out
+  const card = document.getElementById('exerciseCard');
+  card.classList.remove('slide-in');
+  card.classList.add('slide-out');
+
+  setTimeout(()=>{
+    card.classList.remove('slide-out');
+    document.getElementById('cardOverlay').classList.remove('active');
+    document.getElementById('drawZone').classList.remove('hidden');
+  }, 360);
+}
+
+/* ══════════════════════════════════════════════
+   DONE STACK
+══════════════════════════════════════════════ */
+function updateStack() {
+  const n   = doneList.length;
+  const el  = document.getElementById('doneStack');
+  const pile = document.getElementById('stackPile');
+  document.getElementById('stackBadge').textContent = n;
+  el.classList.toggle('show', n>0);
+
+  pile.innerHTML='';
+  const show = Math.min(n,3);
+  for(let i=0;i<show;i++){
+    const ex  = doneList[n-show+i];
+    const mc  = document.createElement('div');
+    mc.className = 'mini-card';
+    const rot = (i-1)*7, tx = (i-1)*5, ty = (show-1-i)*4;
+    mc.style.cssText = `transform:rotate(${rot}deg) translate(${tx}px,${-ty}px);z-index:${i};`;
+    mc.textContent = ex.emoji;
+    pile.appendChild(mc);
+  }
+}
+
+/* ══════════════════════════════════════════════
+   AUTO TOGGLE
+══════════════════════════════════════════════ */
+function toggleAuto() {
+  autoStart = !autoStart;
+  lsSet('autoStart', autoStart);
+  applyAutoUI();
+}
+function applyAutoUI() {
+  const tog = document.getElementById('autoToggle');
+  const lbl = document.getElementById('autoLabel');
+  tog.classList.toggle('on', autoStart);
+  lbl.textContent = autoStart ? '自動開始計時' : '手動開始計時';
+}
+
+/* ══════════════════════════════════════════════
+   SETTINGS
+══════════════════════════════════════════════ */
+function openSettings()  { renderExList(); openSheet('settingsSheet'); }
+function closeSettings() { closeSheet('settingsSheet'); }
+
+function renderExList() {
+  document.getElementById('exListEl').innerHTML = exercises.map(ex=>`
+    <div class="ex-item">
+      <span class="ex-emoji">${ex.emoji}</span>
+      <div class="ex-info">
+        <div class="ex-name">${ex.name}</div>
+        <div class="ex-sub">${fmtMeta(ex)}</div>
+      </div>
+      <button class="btn-del" onclick="delEx(${ex.id})">🗑</button>
+    </div>`).join('');
+}
+
+function delEx(id) {
+  exercises = exercises.filter(e=>e.id!==id);
+  lsSet('exercises', exercises);
+  renderExList();
+}
+
+function addEx() {
+  const emoji = (document.getElementById('fEmoji').value.trim()||'💪');
+  const name  = document.getElementById('fName').value.trim();
+  const value = parseInt(document.getElementById('fValue').value)||0;
+  const type  = document.getElementById('fType').value;
+  if (!name||value<1) { alert('請填寫名稱和時間／次數！'); return; }
+  exercises.push({ id:nextId++, emoji, name, type, value });
+  lsSet('exercises', exercises);
+  renderExList();
+  document.getElementById('fEmoji').value='';
+  document.getElementById('fName').value='';
+  document.getElementById('fValue').value='';
+}
+
+/* ══════════════════════════════════════════════
+   DONE SHEET
+══════════════════════════════════════════════ */
+function openDoneSheet() {
+  const el = document.getElementById('doneListEl');
+  el.innerHTML = doneList.length
+    ? [...doneList].reverse().map(d=>`
+        <div class="done-item">
+          <span class="done-emoji">${d.emoji}</span>
+          <div class="done-info">
+            <div class="done-name">${d.name}</div>
+            <div class="done-sub">${d.at} · ${fmtMeta(d)}</div>
+          </div>
+          <span class="done-check">✓</span>
+        </div>`).join('')
+    : '<div class="empty-msg">還沒完成任何任務 💪<br>去抽一張吧！</div>';
+  openSheet('doneSheetEl');
+}
+
+/* ══════════════════════════════════════════════
+   SHEET HELPERS
+══════════════════════════════════════════════ */
+function openSheet(id)  { document.getElementById(id).classList.add('open'); }
+function closeSheet(id) { document.getElementById(id).classList.remove('open'); }
+function backdropClose(e,id) { if(e.target===document.getElementById(id)) closeSheet(id); }
+
+/* ══════════════════════════════════════════════
+   FORMAT HELPERS
+══════════════════════════════════════════════ */
+function fmtTimer(s) {
+  if(s>=60){ return `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`; }
+  return String(s);
+}
+function fmtMeta(ex) {
+  if(ex.type==='count') return `${ex.value} 下`;
+  return ex.value>=60 ? `${Math.floor(ex.value/60)} 分鐘` : `${ex.value} 秒`;
+}
+
+init();
+</script>
+</body>
+</html>
