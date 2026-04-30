@@ -804,6 +804,7 @@
     </div>
     <div id="doneStatsEl"></div>
     <div id="doneListEl"></div>
+    <button class="io-btn" style="margin-top:14px;width:100%" onclick="copyDoneText()" id="btnCopyText" style="display:none">📋 複製文字紀錄</button>
   </div>
 </div>
 
@@ -1312,7 +1313,7 @@ function openDoneSheet() {
       <span class="done-stats-count">${doneList.length}</span>
       <span>項</span>
       <span class="done-stats-sep">｜</span>
-      <span>累積</span>
+      <span>獲得</span>
       <span class="done-stats-num">${totalStars}</span>
       <span>顆星</span>
     </div>` : '';
@@ -1339,9 +1340,10 @@ function openDoneSheet() {
             <div class="done-sub">${d.at} · ${fmtMeta(d)}</div>
             <div style="margin-top:3px">${fmtStars(d.stars)}</div>
           </div>
-          <span class="done-check">✓</span>
+          <span class="done-check">·</span>
         </div>`).join('')
     : '<div class="empty-msg">還沒完成任何任務 💪<br>去抽一張吧！</div>';
+  document.getElementById('btnCopyText').style.display = doneList.length ? 'block' : 'none';
   openSheet('doneSheetEl');
 }
 
@@ -1358,6 +1360,44 @@ function backdropClose(e,id) { if(e.target===document.getElementById(id)) closeS
 /* ══════════════════════════════════════════════
    EXPORT / IMPORT
 ══════════════════════════════════════════════ */
+function copyDoneText() {
+  const date        = new Date().toLocaleDateString('zh-TW');
+  const totalStars  = doneList.reduce((s,d)=>s+(d.stars||1),0);
+  const starStr     = n => '★'.repeat(n)+'☆'.repeat(3-n);
+
+  // Group same as done sheet
+  const grouped = [];
+  const seen = {};
+  [...doneList].forEach(d => {
+    if (seen[d.id] !== undefined) { grouped[seen[d.id]].count++; }
+    else { seen[d.id] = grouped.length; grouped.push({...d, count:1}); }
+  });
+
+  const lines = grouped.map(d => {
+    const repeat = d.count > 1 ? ` ×${d.count}` : '';
+    return `· ${d.emoji} ${d.name}　${starStr(d.stars||1)}　${fmtMeta(d)}${repeat}`;
+  });
+
+  const text = [
+    `🏃 運動紀錄 ${date}`,
+    '─────────────────',
+    ...lines,
+    '',
+    `完成 ${doneList.length} 項｜獲得 ${totalStars} 顆星 ⭐`,
+  ].join('\n');
+
+  navigator.clipboard.writeText(text).then(()=>{
+    showToast('📋 已複製到剪貼簿！');
+  }).catch(()=>{
+    // fallback
+    const el = document.createElement('textarea');
+    el.value = text; document.body.appendChild(el);
+    el.select(); document.execCommand('copy');
+    document.body.removeChild(el);
+    showToast('📋 已複製到剪貼簿！');
+  });
+}
+
 function exportList() {
   const input    = document.getElementById('exportName');
   const filename = (input?.value.trim() || `運動抽籤-${new Date().toISOString().slice(0,10)}`);
