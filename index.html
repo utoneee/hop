@@ -800,9 +800,12 @@
   <div class="sheet-body">
     <div class="sheet-head">
       <span class="sheet-title">✅ 今日完成</span>
-      <button class="btn-close" onclick="closeSheet('doneSheetEl')">✕</button>
+      <div style="display:flex;align-items:center;gap:6px">
+        <span id="copyFeedback" style="font-size:0.78rem;color:var(--green);opacity:0;transition:opacity 0.3s;white-space:nowrap">複製今日成果 ✓</span>
+        <button class="btn-close" id="btnCopyText" onclick="copyDoneText()" title="複製今日成果" style="font-size:1.1rem">📋</button>
+        <button class="btn-close" onclick="closeSheet('doneSheetEl')">✕</button>
+      </div>
     </div>
-    <button class="io-btn" style="margin-bottom:14px;width:100%" onclick="copyDoneText()" id="btnCopyText">📋 複製文字紀錄</button>
     <div id="doneStatsEl"></div>
     <div id="doneListEl"></div>
   </div>
@@ -1343,7 +1346,10 @@ function openDoneSheet() {
           <span class="done-check">·</span>
         </div>`).join('')
     : '<div class="empty-msg">還沒完成任何任務 💪<br>去抽一張吧！</div>';
-  document.getElementById('btnCopyText').style.display = doneList.length ? 'block' : 'none';
+  const copyBtn = document.getElementById('btnCopyText');
+  if (copyBtn) copyBtn.style.visibility = doneList.length ? 'visible' : 'hidden';
+  const fb = document.getElementById('copyFeedback');
+  if (fb) { fb.style.opacity = '0'; clearTimeout(fb._t); }
 
   openSheet('doneSheetEl');
 }
@@ -1387,15 +1393,20 @@ function copyDoneText() {
     `完成 ${doneList.length} 項｜獲得 ${totalStars} 顆星 ⭐`,
   ].join('\n');
 
-  navigator.clipboard.writeText(text).then(()=>{
-    showToast('📋 已複製到剪貼簿！');
-  }).catch(()=>{
+  const showCopyFeedback = () => {
+    const fb = document.getElementById('copyFeedback');
+    if (!fb) return;
+    fb.style.opacity = '1';
+    clearTimeout(fb._t);
+    fb._t = setTimeout(() => { fb.style.opacity = '0'; }, 2000);
+  };
+  navigator.clipboard.writeText(text).then(showCopyFeedback).catch(()=>{
     // fallback
     const el = document.createElement('textarea');
     el.value = text; document.body.appendChild(el);
     el.select(); document.execCommand('copy');
     document.body.removeChild(el);
-    showToast('📋 已複製到剪貼簿！');
+    showCopyFeedback();
   });
 }
 
