@@ -476,6 +476,88 @@
     .done-sub   { font-size: 0.75rem; color: var(--muted); margin-top: 2px; }
     .done-emoji { font-size: 1.5rem; }
 
+    /* ── Draw mode selector ── */
+    .mode-selector {
+      display: flex;
+      background: var(--bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 3px;
+      margin-bottom: 20px;
+      gap: 3px;
+    }
+    .mode-btn {
+      flex: 1;
+      padding: 9px 6px;
+      border: none;
+      border-radius: 9px;
+      background: transparent;
+      color: var(--muted);
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: center;
+      line-height: 1.4;
+    }
+    .mode-btn.active {
+      background: var(--card-bg);
+      color: var(--green);
+      border: 1px solid var(--card-border);
+    }
+    .mode-desc {
+      font-size: 0.76rem;
+      color: var(--muted);
+      text-align: center;
+      margin-bottom: 20px;
+      margin-top: -12px;
+      line-height: 1.6;
+    }
+
+    /* ── Remaining hint ── */
+    .remaining-hint {
+      font-size: 0.78rem;
+      color: var(--muted);
+      letter-spacing: 0.08em;
+      min-height: 1.2em;
+    }
+    .remaining-hint .rem-num { color: var(--green); font-weight: 700; }
+
+    /* ── Round toast ── */
+    .toast {
+      position: fixed;
+      top: 72px; left: 50%;
+      transform: translateX(-50%) translateY(-12px);
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      padding: 10px 20px;
+      font-size: 0.82rem;
+      color: var(--green);
+      letter-spacing: 0.06em;
+      z-index: 50;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s, transform 0.25s;
+    }
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* ── Repeat badge on card ── */
+    .repeat-badge {
+      display: inline-block;
+      font-size: 0.72rem;
+      color: var(--muted);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      padding: 2px 9px;
+      margin-bottom: 6px;
+      letter-spacing: 0.06em;
+    }
+    .card-repeat { text-align: center; min-height: 22px; margin-bottom: 4px; }
+
     .empty-msg {
       text-align: center;
       color: var(--muted);
@@ -535,7 +617,9 @@
     <div class="draw-ring"></div>
     <button class="btn-draw" id="btnDraw" onclick="draw()">GO</button>
     <div class="draw-hint">點一下抽出今日挑戰</div>
+    <div class="remaining-hint" id="remainingHint"></div>
   </div>
+  <div class="toast" id="toast"></div>
 
   <!-- ── Completed Stack ── -->
   <div class="done-stack" id="doneStack" onclick="openDoneSheet()">
@@ -549,6 +633,7 @@
 <div class="card-overlay" id="cardOverlay">
   <div class="exercise-card" id="exerciseCard">
     <div class="card-handle"></div>
+    <div class="card-repeat" id="cRepeat"></div>
     <div class="card-emoji" id="cEmoji">🤸</div>
     <div class="card-name"  id="cName">開合跳</div>
     <div class="card-meta"  id="cMeta">30 秒</div>
@@ -577,6 +662,11 @@
       <span class="sheet-title">⚙️ 運動清單</span>
       <button class="btn-close" onclick="closeSheet('settingsSheet')">✕</button>
     </div>
+    <div class="mode-selector">
+      <button class="mode-btn" id="modeFree"     onclick="setDrawMode('free')">🎲 自由抽</button>
+      <button class="mode-btn" id="modeNorepeat" onclick="setDrawMode('norepeat')">🔄 輪替制</button>
+    </div>
+    <div class="mode-desc" id="modeDesc"></div>
     <div id="exListEl"></div>
     <div class="add-form">
       <div class="add-form-title" id="formTitle">＋ 新增項目</div>
@@ -638,8 +728,11 @@ let exercises  = lsGet('exercises', DEFAULTS).map(e=>({stars:1,...e})); // migra
 let autoStart  = lsGet('autoStart', false);
 let doneList   = [];       // session only
 let nextId     = exercises.reduce((m,e)=>Math.max(m,e.id),0)+1;
-let newStars   = 1;        // star picker state
-let editingId  = null;     // currently editing exercise id
+let newStars      = 1;           // star picker state
+let editingId     = null;        // currently editing exercise id
+let drawMode      = lsGet('drawMode', 'free'); // 'free' | 'norepeat'
+let completedIds  = new Set();   // done this round (norepeat mode)
+let sessionCounts = {};          // {id: completedCount} for ×N display
 
 let current    = null;     // current exercise object
 let isCount    = false;    // count mode vs timer mode
@@ -663,6 +756,44 @@ function lsSet(k,v){ try{localStorage.setItem(k,JSON.stringify(v));}catch(e){} }
 function init() {
   applyAutoUI();
   applyStarPicker();
+  updateRemainingHint();
+}
+
+/* ── Draw mode ── */
+function setDrawMode(mode) {
+  drawMode = mode;
+  lsSet('drawMode', mode);
+  completedIds.clear();
+  updateRemainingHint();
+  applyModeUI();
+}
+
+function applyModeUI() {
+  const isFree = drawMode === 'free';
+  document.getElementById('modeFree')    ?.classList.toggle('active',  isFree);
+  document.getElementById('modeNorepeat')?.classList.toggle('active', !isFree);
+  const desc = document.getElementById('modeDesc');
+  if (desc) desc.textContent = isFree
+    ? '每次完全隨機，同一個動作可能重複出現'
+    : '做完的動作暫時退場，全部完成後自動重置';
+}
+
+function updateRemainingHint() {
+  const el = document.getElementById('remainingHint');
+  if (!el) return;
+  if (drawMode !== 'norepeat') { el.innerHTML = ''; return; }
+  const rem = exercises.filter(e => !completedIds.has(e.id)).length;
+  el.innerHTML = `還剩 <span class="rem-num">${rem}</span> 個`;
+}
+
+/* ── Toast ── */
+let toastTimer = null;
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2200);
 }
 
 function fmtStars(n, size='') {
@@ -690,8 +821,20 @@ function applyStarPicker() {
 function draw() {
   if (!exercises.length) { alert('清單是空的，請先新增運動！'); return; }
 
+  // Build pool
+  let pool = drawMode === 'norepeat'
+    ? exercises.filter(e => !completedIds.has(e.id))
+    : exercises;
+
+  if (pool.length === 0) {
+    completedIds.clear();
+    pool = [...exercises];
+    showToast('🔄 新的一輪開始！');
+    updateRemainingHint();
+  }
+
   // Pick random
-  current   = exercises[Math.floor(Math.random()*exercises.length)];
+  current   = pool[Math.floor(Math.random()*pool.length)];
   isCount   = current.type==='count';
   timerDone = false;
   remaining = current.value;
@@ -703,6 +846,9 @@ function draw() {
   document.getElementById('cName').textContent  = current.name;
   document.getElementById('cMeta').textContent  = fmtMeta(current);
   document.getElementById('cStars').innerHTML   = fmtStars(current.stars);
+  const cnt = sessionCounts[current.id] || 0;
+  document.getElementById('cRepeat').innerHTML  = cnt > 0
+    ? `<span class="repeat-badge">第 ${cnt+1} 次</span>` : '';
 
   // Timer display
   const numEl  = document.getElementById('timerNum');
@@ -835,6 +981,9 @@ function markDone() {
     ...current,
     at: new Date().toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit',hour12:false})
   });
+  completedIds.add(current.id);
+  sessionCounts[current.id] = (sessionCounts[current.id] || 0) + 1;
+  updateRemainingHint();
   updateStack();
 
   // Slide card out
@@ -890,7 +1039,7 @@ function applyAutoUI() {
 /* ══════════════════════════════════════════════
    SETTINGS
 ══════════════════════════════════════════════ */
-function openSettings()  { renderExList(); openSheet('settingsSheet'); }
+function openSettings()  { renderExList(); applyModeUI(); openSheet('settingsSheet'); }
 function closeSettings() { closeSheet('settingsSheet'); }
 
 let sortable = null;
@@ -996,13 +1145,25 @@ function openDoneSheet() {
       <span>顆星</span>
     </div>` : '';
 
+  // Group by id, preserve last-done time, accumulate count
+  const grouped = [];
+  const seen = {};
+  [...doneList].reverse().forEach(d => {
+    if (seen[d.id] !== undefined) {
+      grouped[seen[d.id]].count++;
+    } else {
+      seen[d.id] = grouped.length;
+      grouped.push({ ...d, count: 1 });
+    }
+  });
+
   const el = document.getElementById('doneListEl');
-  el.innerHTML = doneList.length
-    ? [...doneList].reverse().map(d=>`
+  el.innerHTML = grouped.length
+    ? grouped.map(d=>`
         <div class="done-item">
           <span class="done-emoji">${d.emoji}</span>
           <div class="done-info">
-            <div class="done-name">${d.name}</div>
+            <div class="done-name">${d.name}${d.count>1?` <span style="color:var(--muted);font-size:0.82rem">×${d.count}</span>`:''}</div>
             <div class="done-sub">${d.at} · ${fmtMeta(d)}</div>
             <div style="margin-top:3px">${fmtStars(d.stars)}</div>
           </div>
