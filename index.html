@@ -717,11 +717,11 @@ function draw() {
   // Action button
   const btn = document.getElementById('btnAction');
   if (isCount) {
-    btn.textContent  = '✓ 計數完成';
-    btn.className    = 'btn-primary';
+    btn.style.display = 'none';
   } else {
-    btn.textContent  = '▶ 開始';
-    btn.className    = 'btn-primary';
+    btn.style.display = 'block';
+    btn.textContent   = '▶ 開始';
+    btn.className     = 'btn-primary';
   }
 
   // Done button
