@@ -476,6 +476,61 @@
     .done-sub   { font-size: 0.75rem; color: var(--muted); margin-top: 2px; }
     .done-emoji { font-size: 1.5rem; }
 
+    /* ── Filter area (main screen) ── */
+    .filter-area {
+      position: absolute;
+      top: 68px; left: 0; right: 0;
+      padding: 0 18px;
+      z-index: 5;
+    }
+    .filter-scroll {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      padding-bottom: 2px;
+      scrollbar-width: none;
+      align-items: center;
+    }
+    .filter-scroll::-webkit-scrollbar { display: none; }
+    .filter-sep {
+      width: 1px; height: 18px;
+      background: var(--card-border);
+      flex-shrink: 0;
+      margin: 0 2px;
+    }
+    .fchip {
+      flex-shrink: 0;
+      padding: 5px 12px;
+      border-radius: 20px;
+      border: 1px solid var(--card-border);
+      background: transparent;
+      color: var(--muted);
+      font-size: 0.76rem;
+      cursor: pointer;
+      transition: all 0.18s;
+      white-space: nowrap;
+    }
+    .fchip.active {
+      border-color: var(--green);
+      color: var(--green);
+      background: rgba(74,222,128,0.08);
+    }
+    .fchip.star-chip { letter-spacing: 0.02em; }
+    .fchip.reset-chip { color: #374151; border-color: transparent; font-size: 0.72rem; }
+    .fchip.reset-chip.dirty { color: var(--muted); }
+
+    /* ── Tag display in list/form ── */
+    .tag-pill {
+      display: inline-block;
+      font-size: 0.68rem;
+      color: var(--muted);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 1px 7px;
+      margin: 2px 2px 0 0;
+    }
+    .ex-tags { margin-top: 4px; }
+
     /* ── Draw mode selector ── */
     .mode-selector {
       display: flex;
@@ -611,6 +666,11 @@
     <button class="btn-icon" onclick="openSettings()" title="設定">⚙️</button>
   </div>
 
+  <!-- ── Filter Area ── -->
+  <div class="filter-area" id="filterArea">
+    <div class="filter-scroll" id="filterScroll"></div>
+  </div>
+
   <!-- ── Draw Zone ── -->
   <div class="draw-zone" id="drawZone">
     <div class="draw-ring"></div>
@@ -681,6 +741,9 @@
           <option value="count">🔢 次數</option>
         </select>
       </div>
+      <div class="form-row">
+        <input class="f-input" id="fTags" placeholder="標籤，用逗號分隔（選填）">
+      </div>
       <div class="star-picker">
         <span class="star-picker-label">難度</span>
         <button class="star-btn" onclick="setNewStars(1)" id="fStar1">★</button>
@@ -709,22 +772,22 @@
    DATA
 ══════════════════════════════════════════════ */
 const DEFAULTS = [
-  { id:1,  emoji:'🤸', name:'開合跳',   type:'timer', value:30,  stars:2 },
-  { id:2,  emoji:'🏃', name:'超慢跑',   type:'timer', value:300, stars:3 },
-  { id:3,  emoji:'🦵', name:'深蹲',     type:'count', value:20,  stars:2 },
-  { id:4,  emoji:'🧘', name:'全身伸展', type:'timer', value:60,  stars:1 },
-  { id:5,  emoji:'🦿', name:'高抬腿',   type:'timer', value:30,  stars:2 },
-  { id:6,  emoji:'💪', name:'平板支撐', type:'timer', value:30,  stars:3 },
-  { id:7,  emoji:'⚡', name:'原地跳繩', type:'timer', value:60,  stars:3 },
-  { id:8,  emoji:'🫨', name:'抖腿甩手', type:'timer', value:30,  stars:1 },
-  { id:9,  emoji:'🙆', name:'手臂繞圈', type:'count', value:15,  stars:1 },
-  { id:10, emoji:'🚶', name:'原地踏步', type:'timer', value:60,  stars:1 },
+  { id:1,  emoji:'🤸', name:'開合跳',   type:'timer', value:30,  stars:2, tags:['有氧','全身'] },
+  { id:2,  emoji:'🏃', name:'超慢跑',   type:'timer', value:300, stars:3, tags:['有氧','低強度'] },
+  { id:3,  emoji:'🦵', name:'深蹲',     type:'count', value:20,  stars:2, tags:['下肢','肌力'] },
+  { id:4,  emoji:'🧘', name:'全身伸展', type:'timer', value:60,  stars:1, tags:['伸展','收操'] },
+  { id:5,  emoji:'🦿', name:'高抬腿',   type:'timer', value:30,  stars:2, tags:['有氧','下肢'] },
+  { id:6,  emoji:'💪', name:'平板支撐', type:'timer', value:30,  stars:3, tags:['核心','肌力'] },
+  { id:7,  emoji:'⚡', name:'原地跳繩', type:'timer', value:60,  stars:3, tags:['有氧','全身'] },
+  { id:8,  emoji:'🫨', name:'抖腿甩手', type:'timer', value:30,  stars:1, tags:['放鬆','低強度'] },
+  { id:9,  emoji:'🙆', name:'手臂繞圈', type:'count', value:15,  stars:1, tags:['上肢','伸展'] },
+  { id:10, emoji:'🚶', name:'原地踏步', type:'timer', value:60,  stars:1, tags:['有氧','低強度'] },
 ];
 
 /* ══════════════════════════════════════════════
    STATE
 ══════════════════════════════════════════════ */
-let exercises  = lsGet('exercises', DEFAULTS).map(e=>({stars:1,...e})); // migrate old data
+let exercises  = lsGet('exercises', DEFAULTS).map(e=>({stars:1,tags:[],...e})); // migrate old data
 let autoStart  = lsGet('autoStart', false);
 let doneList   = [];       // session only
 let nextId     = exercises.reduce((m,e)=>Math.max(m,e.id),0)+1;
@@ -733,6 +796,8 @@ let editingId     = null;        // currently editing exercise id
 let drawMode      = lsGet('drawMode', 'free'); // 'free' | 'norepeat'
 let completedIds  = new Set();   // done this round (norepeat mode)
 let sessionCounts = {};          // {id: completedCount} for ×N display
+let selTags       = new Set();   // selected tag filters
+let selStars      = new Set();   // selected star filters
 
 let current    = null;     // current exercise object
 let isCount    = false;    // count mode vs timer mode
@@ -756,7 +821,58 @@ function lsSet(k,v){ try{localStorage.setItem(k,JSON.stringify(v));}catch(e){} }
 function init() {
   applyAutoUI();
   applyStarPicker();
+  renderFilterChips();
   updateRemainingHint();
+}
+
+/* ── Filter chips ── */
+function getAllTags() {
+  const set = new Set();
+  exercises.forEach(e => (e.tags||[]).forEach(t => t && set.add(t.trim())));
+  return [...set].sort();
+}
+
+function renderFilterChips() {
+  const el = document.getElementById('filterScroll');
+  if (!el) return;
+  const tags  = getAllTags();
+  const dirty = selTags.size > 0 || selStars.size > 0;
+
+  const starChips = [1,2,3].map(s =>
+    `<button class="fchip star-chip${selStars.has(s)?' active':''}" onclick="toggleStarFilter(${s})">${'★'.repeat(s)}</button>`
+  ).join('');
+
+  const tagChips = tags.map(t =>
+    `<button class="fchip${selTags.has(t)?' active':''}" onclick="toggleTagFilter('${t}')">${t}</button>`
+  ).join('');
+
+  const sep = tags.length ? '<div class="filter-sep"></div>' : '';
+  const reset = dirty
+    ? `<button class="fchip reset-chip dirty" onclick="clearFilters()">✕ 清除</button>`
+    : '';
+
+  el.innerHTML = starChips + sep + tagChips + (dirty ? '<div class="filter-sep"></div>' + reset : '');
+}
+
+function toggleTagFilter(tag) {
+  selTags.has(tag) ? selTags.delete(tag) : selTags.add(tag);
+  renderFilterChips();
+}
+function toggleStarFilter(s) {
+  selStars.has(s) ? selStars.delete(s) : selStars.add(s);
+  renderFilterChips();
+}
+function clearFilters() {
+  selTags.clear(); selStars.clear();
+  renderFilterChips();
+}
+
+function getFilteredPool() {
+  return exercises.filter(e => {
+    const tagOk  = selTags.size  === 0 || (e.tags||[]).some(t => selTags.has(t));
+    const starOk = selStars.size === 0 || selStars.has(e.stars||1);
+    return tagOk && starOk;
+  });
 }
 
 /* ── Draw mode ── */
@@ -782,7 +898,7 @@ function updateRemainingHint() {
   const el = document.getElementById('remainingHint');
   if (!el) return;
   if (drawMode !== 'norepeat') { el.innerHTML = ''; return; }
-  const rem = exercises.filter(e => !completedIds.has(e.id)).length;
+  const rem = getFilteredPool().filter(e => !completedIds.has(e.id)).length;
   el.innerHTML = `還剩 <span class="rem-num">${rem}</span> 個`;
 }
 
@@ -821,14 +937,18 @@ function applyStarPicker() {
 function draw() {
   if (!exercises.length) { alert('清單是空的，請先新增運動！'); return; }
 
-  // Build pool
+  const filtered = getFilteredPool();
+  if (!filtered.length) { showToast('⚠️ 沒有符合條件的運動'); return; }
+
+  // Build pool (norepeat applies within filtered set)
   let pool = drawMode === 'norepeat'
-    ? exercises.filter(e => !completedIds.has(e.id))
-    : exercises;
+    ? filtered.filter(e => !completedIds.has(e.id))
+    : filtered;
 
   if (pool.length === 0) {
-    completedIds.clear();
-    pool = [...exercises];
+    // reset only within filtered set
+    filtered.forEach(e => completedIds.delete(e.id));
+    pool = [...filtered];
     showToast('🔄 新的一輪開始！');
     updateRemainingHint();
   }
@@ -1052,6 +1172,7 @@ function renderExList() {
         <div class="ex-name">${ex.name}</div>
         <div class="ex-sub">${fmtMeta(ex)}</div>
         <div class="ex-stars">${fmtStars(ex.stars)}</div>
+        ${(ex.tags||[]).length ? `<div class="ex-tags">${(ex.tags).map(t=>`<span class="tag-pill">${t}</span>`).join('')}</div>` : ''}
       </div>
       <div style="display:flex;flex-direction:column;gap:5px;flex-shrink:0">
         <button class="btn-edit" onclick="editEx(${ex.id})">編輯</button>
@@ -1080,24 +1201,28 @@ function delEx(id) {
   renderExList();
 }
 
+function parseTags(str) {
+  return str.split(',').map(t=>t.trim()).filter(Boolean);
+}
+
 function addEx() {
   const emoji = (document.getElementById('fEmoji').value.trim()||'💪');
   const name  = document.getElementById('fName').value.trim();
   const value = parseInt(document.getElementById('fValue').value)||0;
   const type  = document.getElementById('fType').value;
+  const tags  = parseTags(document.getElementById('fTags').value);
   if (!name||value<1) { alert('請填寫名稱和時間／次數！'); return; }
 
   if (editingId !== null) {
-    // 編輯模式：更新現有項目
     exercises = exercises.map(e =>
-      e.id===editingId ? {...e, emoji, name, type, value, stars:newStars} : e
+      e.id===editingId ? {...e, emoji, name, type, value, stars:newStars, tags} : e
     );
   } else {
-    // 新增模式
-    exercises.push({ id:nextId++, emoji, name, type, value, stars:newStars });
+    exercises.push({ id:nextId++, emoji, name, type, value, stars:newStars, tags });
   }
   lsSet('exercises', exercises);
   renderExList();
+  renderFilterChips();
   resetForm();
 }
 
@@ -1109,11 +1234,11 @@ function editEx(id) {
   document.getElementById('fName').value  = ex.name;
   document.getElementById('fValue').value = ex.value;
   document.getElementById('fType').value  = ex.type;
+  document.getElementById('fTags').value  = (ex.tags||[]).join(', ');
   newStars = ex.stars||1;
   applyStarPicker();
   document.getElementById('formTitle').textContent     = '✏️ 編輯項目';
   document.getElementById('formSubmitBtn').textContent = '更新';
-  // 捲動到表單
   document.querySelector('.add-form').scrollIntoView({ behavior:'smooth', block:'center' });
 }
 
@@ -1122,6 +1247,7 @@ function resetForm() {
   document.getElementById('fEmoji').value='';
   document.getElementById('fName').value='';
   document.getElementById('fValue').value='';
+  document.getElementById('fTags').value='';
   document.getElementById('fType').value='timer';
   newStars=1; applyStarPicker();
   document.getElementById('formTitle').textContent     = '＋ 新增項目';
