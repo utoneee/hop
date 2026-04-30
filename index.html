@@ -459,6 +459,41 @@
       font-size: 0.88rem;
       line-height: 1.9;
     }
+
+    /* ── Stars ── */
+    .stars { letter-spacing: 0.04em; font-size: 0.95rem; }
+    .star-on  { color: #facc15; }
+    .star-off { color: #1e3320; }
+
+    /* Card stars */
+    .card-stars { text-align: center; margin-bottom: 20px; font-size: 1.15rem; letter-spacing: 0.1em; }
+
+    /* List stars */
+    .ex-stars { font-size: 0.78rem; margin-top: 3px; }
+
+    /* Star picker in add form */
+    .star-picker { display: flex; gap: 6px; align-items: center; margin-bottom: 9px; }
+    .star-picker-label { font-size: 0.82rem; color: var(--muted); }
+    .star-btn {
+      background: none; border: none; cursor: pointer;
+      font-size: 1.4rem; padding: 2px 3px; line-height: 1;
+      transition: transform 0.12s;
+    }
+    .star-btn:active { transform: scale(1.3); }
+
+    /* Done stats bar */
+    .done-stats {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 14px;
+      margin-bottom: 16px;
+      font-size: 0.88rem; color: var(--muted);
+    }
+    .done-stats-num { font-size: 1.3rem; font-weight: 800; color: #facc15; }
+    .done-stats-sep { color: var(--card-border); }
+    .done-stats-count { font-size: 1.1rem; font-weight: 700; color: var(--green); }
   </style>
 </head>
 <body>
@@ -493,6 +528,7 @@
     <div class="card-emoji" id="cEmoji">🤸</div>
     <div class="card-name"  id="cName">開合跳</div>
     <div class="card-meta"  id="cMeta">30 秒</div>
+    <div class="card-stars" id="cStars"></div>
 
     <div class="auto-row" id="autoRow" onclick="toggleAuto()">
       <span class="auto-label" id="autoLabel">自動開始計時</span>
@@ -530,6 +566,12 @@
           <option value="count">🔢 次數</option>
         </select>
       </div>
+      <div class="star-picker">
+        <span class="star-picker-label">難度</span>
+        <button class="star-btn" onclick="setNewStars(1)" id="fStar1">★</button>
+        <button class="star-btn" onclick="setNewStars(2)" id="fStar2">★</button>
+        <button class="star-btn" onclick="setNewStars(3)" id="fStar3">★</button>
+      </div>
       <button class="btn-primary" style="margin-bottom:0" onclick="addEx()">新增</button>
     </div>
   </div>
@@ -542,6 +584,7 @@
       <span class="sheet-title">✅ 今日完成</span>
       <button class="btn-close" onclick="closeSheet('doneSheetEl')">✕</button>
     </div>
+    <div id="doneStatsEl"></div>
     <div id="doneListEl"></div>
   </div>
 </div>
@@ -551,25 +594,26 @@
    DATA
 ══════════════════════════════════════════════ */
 const DEFAULTS = [
-  { id:1,  emoji:'🤸', name:'開合跳',   type:'timer', value:30  },
-  { id:2,  emoji:'🏃', name:'超慢跑',   type:'timer', value:300 },
-  { id:3,  emoji:'🦵', name:'深蹲',     type:'count', value:20  },
-  { id:4,  emoji:'🧘', name:'全身伸展', type:'timer', value:60  },
-  { id:5,  emoji:'🦿', name:'高抬腿',   type:'timer', value:30  },
-  { id:6,  emoji:'💪', name:'平板支撐', type:'timer', value:30  },
-  { id:7,  emoji:'⚡', name:'原地跳繩', type:'timer', value:60  },
-  { id:8,  emoji:'🫨', name:'抖腿甩手', type:'timer', value:30  },
-  { id:9,  emoji:'🙆', name:'手臂繞圈', type:'count', value:15  },
-  { id:10, emoji:'🚶', name:'原地踏步', type:'timer', value:60  },
+  { id:1,  emoji:'🤸', name:'開合跳',   type:'timer', value:30,  stars:2 },
+  { id:2,  emoji:'🏃', name:'超慢跑',   type:'timer', value:300, stars:3 },
+  { id:3,  emoji:'🦵', name:'深蹲',     type:'count', value:20,  stars:2 },
+  { id:4,  emoji:'🧘', name:'全身伸展', type:'timer', value:60,  stars:1 },
+  { id:5,  emoji:'🦿', name:'高抬腿',   type:'timer', value:30,  stars:2 },
+  { id:6,  emoji:'💪', name:'平板支撐', type:'timer', value:30,  stars:3 },
+  { id:7,  emoji:'⚡', name:'原地跳繩', type:'timer', value:60,  stars:3 },
+  { id:8,  emoji:'🫨', name:'抖腿甩手', type:'timer', value:30,  stars:1 },
+  { id:9,  emoji:'🙆', name:'手臂繞圈', type:'count', value:15,  stars:1 },
+  { id:10, emoji:'🚶', name:'原地踏步', type:'timer', value:60,  stars:1 },
 ];
 
 /* ══════════════════════════════════════════════
    STATE
 ══════════════════════════════════════════════ */
-let exercises  = lsGet('exercises', DEFAULTS);
+let exercises  = lsGet('exercises', DEFAULTS).map(e=>({stars:1,...e})); // migrate old data
 let autoStart  = lsGet('autoStart', false);
 let doneList   = [];       // session only
 let nextId     = exercises.reduce((m,e)=>Math.max(m,e.id),0)+1;
+let newStars   = 1;        // star picker state
 
 let current    = null;     // current exercise object
 let isCount    = false;    // count mode vs timer mode
@@ -592,6 +636,26 @@ function lsSet(k,v){ try{localStorage.setItem(k,JSON.stringify(v));}catch(e){} }
 ══════════════════════════════════════════════ */
 function init() {
   applyAutoUI();
+  applyStarPicker();
+}
+
+function fmtStars(n, size='') {
+  const s = n||1;
+  return `<span class="stars ${size}">` +
+    '<span class="star-on">' + '★'.repeat(s) + '</span>' +
+    '<span class="star-off">' + '★'.repeat(3-s) + '</span>' +
+    '</span>';
+}
+
+function setNewStars(n) {
+  newStars = n;
+  applyStarPicker();
+}
+function applyStarPicker() {
+  [1,2,3].forEach(i=>{
+    const el = document.getElementById('fStar'+i);
+    if(el) el.style.color = i<=newStars ? '#facc15' : '#1e3320';
+  });
 }
 
 /* ══════════════════════════════════════════════
@@ -612,6 +676,7 @@ function draw() {
   document.getElementById('cEmoji').textContent = current.emoji;
   document.getElementById('cName').textContent  = current.name;
   document.getElementById('cMeta').textContent  = fmtMeta(current);
+  document.getElementById('cStars').innerHTML   = fmtStars(current.stars);
 
   // Timer display
   const numEl  = document.getElementById('timerNum');
@@ -798,6 +863,7 @@ function renderExList() {
       <div class="ex-info">
         <div class="ex-name">${ex.name}</div>
         <div class="ex-sub">${fmtMeta(ex)}</div>
+        <div class="ex-stars">${fmtStars(ex.stars)}</div>
       </div>
       <button class="btn-del" onclick="delEx(${ex.id})">刪除</button>
     </div>`).join('');
@@ -829,18 +895,32 @@ function addEx() {
   const value = parseInt(document.getElementById('fValue').value)||0;
   const type  = document.getElementById('fType').value;
   if (!name||value<1) { alert('請填寫名稱和時間／次數！'); return; }
-  exercises.push({ id:nextId++, emoji, name, type, value });
+  exercises.push({ id:nextId++, emoji, name, type, value, stars:newStars });
   lsSet('exercises', exercises);
   renderExList();
   document.getElementById('fEmoji').value='';
   document.getElementById('fName').value='';
   document.getElementById('fValue').value='';
+  newStars=1; applyStarPicker();
 }
 
 /* ══════════════════════════════════════════════
    DONE SHEET
 ══════════════════════════════════════════════ */
 function openDoneSheet() {
+  const totalStars = doneList.reduce((s,d)=>s+(d.stars||1),0);
+  const statsEl = document.getElementById('doneStatsEl');
+  statsEl.innerHTML = doneList.length ? `
+    <div class="done-stats">
+      <span>完成</span>
+      <span class="done-stats-count">${doneList.length}</span>
+      <span>項</span>
+      <span class="done-stats-sep">｜</span>
+      <span>累積</span>
+      <span class="done-stats-num">${totalStars}</span>
+      <span>顆星</span>
+    </div>` : '';
+
   const el = document.getElementById('doneListEl');
   el.innerHTML = doneList.length
     ? [...doneList].reverse().map(d=>`
@@ -849,6 +929,7 @@ function openDoneSheet() {
           <div class="done-info">
             <div class="done-name">${d.name}</div>
             <div class="done-sub">${d.at} · ${fmtMeta(d)}</div>
+            <div style="margin-top:3px">${fmtStars(d.stars)}</div>
           </div>
           <span class="done-check">✓</span>
         </div>`).join('')
