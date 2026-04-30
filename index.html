@@ -555,6 +555,7 @@
     }
     .io-btn:active { background: rgba(74,222,128,0.08); border-color: var(--green); color: var(--green); }
     .io-hint { font-size: 0.72rem; color: var(--muted); line-height: 1.6; }
+    .io-ext  { color: var(--muted); font-size: 0.85rem; align-self: center; flex-shrink: 0; }
 
     /* ── Draw mode selector ── */
     .mode-selector {
@@ -780,6 +781,10 @@
 
     <div class="io-section">
       <div class="io-title">備份與還原</div>
+      <div class="io-row">
+        <input class="f-input" id="exportName" placeholder="檔案名稱">
+        <span class="io-ext">.json</span>
+      </div>
       <div class="io-row">
         <button class="io-btn" onclick="exportList()">⬆ 匯出清單</button>
         <button class="io-btn" onclick="document.getElementById('importFile').click()">⬇ 匯入清單</button>
@@ -1194,7 +1199,13 @@ function applyAutoUI() {
 /* ══════════════════════════════════════════════
    SETTINGS
 ══════════════════════════════════════════════ */
-function openSettings()  { renderExList(); applyModeUI(); openSheet('settingsSheet'); }
+function openSettings() {
+  renderExList();
+  applyModeUI();
+  const nameEl = document.getElementById('exportName');
+  if (nameEl && !nameEl.value) nameEl.value = `運動抽籤-${new Date().toISOString().slice(0,10)}`;
+  openSheet('settingsSheet');
+}
 function closeSettings() { closeSheet('settingsSheet'); }
 
 let sortable = null;
@@ -1348,13 +1359,14 @@ function backdropClose(e,id) { if(e.target===document.getElementById(id)) closeS
    EXPORT / IMPORT
 ══════════════════════════════════════════════ */
 function exportList() {
-  const data = { version: 1, exercises, exportedAt: new Date().toISOString() };
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-  const url  = URL.createObjectURL(blob);
-  const a    = document.createElement('a');
-  const date = new Date().toISOString().slice(0,10);
-  a.href     = url;
-  a.download = `運動抽籤-${date}.json`;
+  const input    = document.getElementById('exportName');
+  const filename = (input?.value.trim() || `運動抽籤-${new Date().toISOString().slice(0,10)}`);
+  const data     = { version: 1, exercises, exportedAt: new Date().toISOString() };
+  const blob     = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url      = URL.createObjectURL(blob);
+  const a        = document.createElement('a');
+  a.href         = url;
+  a.download     = `${filename}.json`;
   a.click();
   URL.revokeObjectURL(url);
   showToast('✅ 清單已匯出！');
