@@ -882,20 +882,48 @@ function renderFilterChips() {
   const tags  = getAllTags();
   const dirty = selTags.size > 0 || selStars.size > 0;
 
-  const starChips = [1,2,3].map(s =>
-    `<button class="fchip star-chip${selStars.has(s)?' active':''}" onclick="toggleStarFilter(${s})">${'★'.repeat(s)}</button>`
-  ).join('');
+  // Check if tag list has changed — only rebuild HTML when structure changes
+  const existingTags = [...el.querySelectorAll('.fchip[data-tag]')].map(b => b.dataset.tag);
+  const needRebuild  = el.children.length === 0 ||
+                       JSON.stringify(existingTags) !== JSON.stringify(tags);
 
-  const tagChips = tags.map(t =>
-    `<button class="fchip${selTags.has(t)?' active':''}" onclick="toggleTagFilter('${t}')">${t}</button>`
-  ).join('');
+  if (needRebuild) {
+    const starChips = [1,2,3].map(s =>
+      `<button class="fchip star-chip${selStars.has(s)?' active':''}" data-stars="${s}" onclick="toggleStarFilter(${s})">${'★'.repeat(s)}</button>`
+    ).join('');
+    const tagChips = tags.map(t =>
+      `<button class="fchip${selTags.has(t)?' active':''}" data-tag="${t}" onclick="toggleTagFilter('${t}')">${t}</button>`
+    ).join('');
+    const sep   = tags.length ? '<div class="filter-sep"></div>' : '';
+    const reset = dirty ? `<button class="fchip reset-chip dirty" onclick="clearFilters()">✕ 清除</button>` : '';
+    el.innerHTML = starChips + sep + tagChips + (dirty ? '<div class="filter-sep"></div>' + reset : '');
+    return;
+  }
 
-  const sep = tags.length ? '<div class="filter-sep"></div>' : '';
-  const reset = dirty
-    ? `<button class="fchip reset-chip dirty" onclick="clearFilters()">✕ 清除</button>`
-    : '';
+  // Structure unchanged — just toggle .active without rebuilding DOM
+  el.querySelectorAll('.fchip[data-stars]').forEach(btn => {
+    btn.classList.toggle('active', selStars.has(+btn.dataset.stars));
+  });
+  el.querySelectorAll('.fchip[data-tag]').forEach(btn => {
+    btn.classList.toggle('active', selTags.has(btn.dataset.tag));
+  });
 
-  el.innerHTML = starChips + sep + tagChips + (dirty ? '<div class="filter-sep"></div>' + reset : '');
+  // Add / remove reset button in-place
+  let resetBtn = el.querySelector('.reset-chip');
+  if (dirty && !resetBtn) {
+    const sep = document.createElement('div');
+    sep.className = 'filter-sep';
+    el.appendChild(sep);
+    resetBtn = document.createElement('button');
+    resetBtn.className = 'fchip reset-chip dirty';
+    resetBtn.setAttribute('onclick', 'clearFilters()');
+    resetBtn.textContent = '✕ 清除';
+    el.appendChild(resetBtn);
+  } else if (!dirty && resetBtn) {
+    const prev = resetBtn.previousElementSibling;
+    if (prev?.classList?.contains('filter-sep')) prev.remove();
+    resetBtn.remove();
+  }
 }
 
 function toggleTagFilter(tag) {
