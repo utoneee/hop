@@ -387,6 +387,14 @@
       touch-action: none; flex-shrink: 0; opacity: 0.6;
     }
     .drag-handle:active { cursor: grabbing; }
+    .btn-edit {
+      background: none; border: 1px solid var(--card-border); color: var(--muted);
+      font-size: 0.85rem; cursor: pointer; padding: 6px 10px; border-radius: 8px;
+      transition: background 0.15s, border-color 0.15s, color 0.15s;
+      flex-shrink: 0;
+    }
+    .btn-edit:active  { background: rgba(74,222,128,0.08); border-color: var(--green); color: var(--green); }
+    .btn-edit.active  { border-color: var(--green); color: var(--green); background: rgba(74,222,128,0.08); }
     .btn-del  {
       background: none; border: 1px solid rgba(239,68,68,0.35); color: #ef4444;
       font-size: 0.85rem; cursor: pointer; padding: 6px 10px; border-radius: 8px;
@@ -554,7 +562,7 @@
     </div>
     <div id="exListEl"></div>
     <div class="add-form">
-      <div class="add-form-title">＋ 新增項目</div>
+      <div class="add-form-title" id="formTitle">＋ 新增項目</div>
       <div class="form-row">
         <input class="f-input f-emoji" id="fEmoji" placeholder="💪" maxlength="2">
         <input class="f-input" id="fName"  placeholder="運動名稱（必填）">
@@ -572,7 +580,7 @@
         <button class="star-btn" onclick="setNewStars(2)" id="fStar2">★</button>
         <button class="star-btn" onclick="setNewStars(3)" id="fStar3">★</button>
       </div>
-      <button class="btn-primary" style="margin-bottom:0" onclick="addEx()">新增</button>
+      <button class="btn-primary" style="margin-bottom:0" id="formSubmitBtn" onclick="addEx()">新增</button>
     </div>
   </div>
 </div>
@@ -614,6 +622,7 @@ let autoStart  = lsGet('autoStart', false);
 let doneList   = [];       // session only
 let nextId     = exercises.reduce((m,e)=>Math.max(m,e.id),0)+1;
 let newStars   = 1;        // star picker state
+let editingId  = null;     // currently editing exercise id
 
 let current    = null;     // current exercise object
 let isCount    = false;    // count mode vs timer mode
@@ -865,7 +874,10 @@ function renderExList() {
         <div class="ex-sub">${fmtMeta(ex)}</div>
         <div class="ex-stars">${fmtStars(ex.stars)}</div>
       </div>
-      <button class="btn-del" onclick="delEx(${ex.id})">刪除</button>
+      <div style="display:flex;flex-direction:column;gap:5px;flex-shrink:0">
+        <button class="btn-edit" onclick="editEx(${ex.id})">編輯</button>
+        <button class="btn-del"  onclick="delEx(${ex.id})">刪除</button>
+      </div>
     </div>`).join('');
 
   if (sortable) sortable.destroy();
@@ -895,13 +907,46 @@ function addEx() {
   const value = parseInt(document.getElementById('fValue').value)||0;
   const type  = document.getElementById('fType').value;
   if (!name||value<1) { alert('請填寫名稱和時間／次數！'); return; }
-  exercises.push({ id:nextId++, emoji, name, type, value, stars:newStars });
+
+  if (editingId !== null) {
+    // 編輯模式：更新現有項目
+    exercises = exercises.map(e =>
+      e.id===editingId ? {...e, emoji, name, type, value, stars:newStars} : e
+    );
+  } else {
+    // 新增模式
+    exercises.push({ id:nextId++, emoji, name, type, value, stars:newStars });
+  }
   lsSet('exercises', exercises);
   renderExList();
+  resetForm();
+}
+
+function editEx(id) {
+  const ex = exercises.find(e=>e.id===id);
+  if (!ex) return;
+  editingId = id;
+  document.getElementById('fEmoji').value = ex.emoji;
+  document.getElementById('fName').value  = ex.name;
+  document.getElementById('fValue').value = ex.value;
+  document.getElementById('fType').value  = ex.type;
+  newStars = ex.stars||1;
+  applyStarPicker();
+  document.getElementById('formTitle').textContent     = '✏️ 編輯項目';
+  document.getElementById('formSubmitBtn').textContent = '更新';
+  // 捲動到表單
+  document.querySelector('.add-form').scrollIntoView({ behavior:'smooth', block:'center' });
+}
+
+function resetForm() {
+  editingId = null;
   document.getElementById('fEmoji').value='';
   document.getElementById('fName').value='';
   document.getElementById('fValue').value='';
+  document.getElementById('fType').value='timer';
   newStars=1; applyStarPicker();
+  document.getElementById('formTitle').textContent     = '＋ 新增項目';
+  document.getElementById('formSubmitBtn').textContent = '新增';
 }
 
 /* ══════════════════════════════════════════════
