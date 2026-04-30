@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
   <title>運動抽籤</title>
   <style>
     :root {
@@ -333,7 +334,7 @@
     .sheet-body {
       width: 100%;
       max-width: 500px;
-      background: #0c1a0e;
+      background: var(--bg);
       border: 1px solid var(--card-border);
       border-bottom: none;
       border-radius: 28px 28px 0 0;
@@ -343,8 +344,13 @@
       transform: translateY(36px);
       transition: transform 0.28s;
       -webkit-overflow-scrolling: touch;
+      box-shadow: 0 -1px 0 rgba(74,222,128,0.18);
     }
     .sheet-backdrop.open .sheet-body { transform: translateY(0); }
+    .sheet-body::-webkit-scrollbar { width: 4px; }
+    .sheet-body::-webkit-scrollbar-track { background: transparent; }
+    .sheet-body::-webkit-scrollbar-thumb { background: rgba(74,222,128,0.2); border-radius: 2px; }
+    .sheet-body::-webkit-scrollbar-thumb:hover { background: rgba(74,222,128,0.4); }
 
     .sheet-head {
       display: flex;
@@ -376,12 +382,20 @@
     .ex-info  { flex: 1; min-width: 0; }
     .ex-name  { font-size: 0.95rem; font-weight: 700; }
     .ex-sub   { font-size: 0.76rem; color: var(--muted); margin-top: 2px; }
-    .btn-del  {
-      background: none; border: none; color: #374151;
-      font-size: 1rem; cursor: pointer; padding: 6px 8px; border-radius: 8px;
-      transition: color 0.15s;
+    .drag-handle {
+      color: var(--muted); font-size: 1.1rem; cursor: grab; padding: 6px 8px;
+      touch-action: none; flex-shrink: 0; opacity: 0.6;
     }
-    .btn-del:active { color: #ef4444; }
+    .drag-handle:active { cursor: grabbing; }
+    .btn-del  {
+      background: none; border: 1px solid rgba(239,68,68,0.35); color: #ef4444;
+      font-size: 0.85rem; cursor: pointer; padding: 6px 10px; border-radius: 8px;
+      transition: background 0.15s, border-color 0.15s;
+      flex-shrink: 0;
+    }
+    .btn-del:active { background: rgba(239,68,68,0.15); }
+    .ex-item.sortable-ghost { opacity: 0.35; }
+    .ex-item.sortable-chosen { box-shadow: 0 0 0 1.5px var(--green); }
 
     /* Add form */
     .add-form {
@@ -405,6 +419,20 @@
       transition: border-color 0.18s;
     }
     .f-input:focus, .f-select:focus { border-color: var(--green-mid); }
+    /* 移除數字 spinner */
+    .f-input[type=number]::-webkit-outer-spin-button,
+    .f-input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    .f-input[type=number] { -moz-appearance: textfield; }
+    /* 自訂下拉箭頭 */
+    .f-select {
+      appearance: none;
+      -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%234ade80' stroke-width='2' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      padding-right: 34px;
+      cursor: pointer;
+    }
     .f-emoji { max-width: 68px; text-align: center; font-size: 1.2rem; }
 
     /* Done list */
@@ -492,7 +520,7 @@
     <div class="add-form">
       <div class="add-form-title">＋ 新增項目</div>
       <div class="form-row">
-        <input class="f-input f-emoji" id="fEmoji" placeholder="🏃" maxlength="2">
+        <input class="f-input f-emoji" id="fEmoji" placeholder="💪" maxlength="2">
         <input class="f-input" id="fName"  placeholder="運動名稱（必填）">
       </div>
       <div class="form-row">
@@ -701,7 +729,7 @@ function markDone() {
 
   doneList.push({
     ...current,
-    at: new Date().toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'})
+    at: new Date().toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit',hour12:false})
   });
   updateStack();
 
@@ -761,16 +789,32 @@ function applyAutoUI() {
 function openSettings()  { renderExList(); openSheet('settingsSheet'); }
 function closeSettings() { closeSheet('settingsSheet'); }
 
+let sortable = null;
 function renderExList() {
   document.getElementById('exListEl').innerHTML = exercises.map(ex=>`
-    <div class="ex-item">
+    <div class="ex-item" data-id="${ex.id}">
+      <span class="drag-handle">⠿</span>
       <span class="ex-emoji">${ex.emoji}</span>
       <div class="ex-info">
         <div class="ex-name">${ex.name}</div>
         <div class="ex-sub">${fmtMeta(ex)}</div>
       </div>
-      <button class="btn-del" onclick="delEx(${ex.id})">🗑</button>
+      <button class="btn-del" onclick="delEx(${ex.id})">刪除</button>
     </div>`).join('');
+
+  if (sortable) sortable.destroy();
+  sortable = Sortable.create(document.getElementById('exListEl'), {
+    handle: '.drag-handle',
+    animation: 160,
+    ghostClass: 'sortable-ghost',
+    chosenClass: 'sortable-chosen',
+    onEnd() {
+      const ids = [...document.querySelectorAll('#exListEl .ex-item')]
+        .map(el => parseInt(el.dataset.id));
+      exercises = ids.map(id => exercises.find(e => e.id === id));
+      lsSet('exercises', exercises);
+    }
+  });
 }
 
 function delEx(id) {
