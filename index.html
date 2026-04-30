@@ -457,7 +457,7 @@
       padding-right: 34px;
       cursor: pointer;
     }
-    .f-emoji { max-width: 68px; text-align: center; font-size: 1.2rem; }
+    .f-emoji { max-width: 80px; text-align: center; font-size: 0.95rem; }
 
     /* Done list */
     .done-item {
@@ -756,7 +756,7 @@
     <div class="add-form">
       <div class="add-form-title" id="formTitle">＋ 新增項目</div>
       <div class="form-row">
-        <input class="f-input f-emoji" id="fEmoji" placeholder="💪" maxlength="2">
+        <input class="f-input f-emoji" id="fEmoji" placeholder="💪" maxlength="6">
         <input class="f-input" id="fName"  placeholder="運動名稱（必填）">
       </div>
       <div class="form-row">
@@ -781,8 +781,8 @@
     <div class="io-section">
       <div class="io-title">備份與還原</div>
       <div class="io-row">
-        <button class="io-btn" onclick="exportList()">⬇ 匯出清單</button>
-        <button class="io-btn" onclick="document.getElementById('importFile').click()">⬆ 匯入清單</button>
+        <button class="io-btn" onclick="exportList()">⬆ 匯出清單</button>
+        <button class="io-btn" onclick="document.getElementById('importFile').click()">⬇ 匯入清單</button>
         <input type="file" id="importFile" accept=".json" style="display:none" onchange="importList(event)">
       </div>
       <div class="io-hint">匯出的 .json 檔可在其他裝置或瀏覽器匯入，還原你的運動清單</div>
