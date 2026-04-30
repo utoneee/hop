@@ -531,6 +531,31 @@
     }
     .ex-tags { margin-top: 4px; }
 
+    /* ── Export / Import ── */
+    .io-section {
+      margin-top: 20px;
+      padding: 16px;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+    }
+    .io-title { font-size: 0.78rem; color: var(--muted); font-weight: 700; letter-spacing: 0.08em; margin-bottom: 12px; }
+    .io-row   { display: flex; gap: 8px; margin-bottom: 10px; }
+    .io-btn {
+      flex: 1;
+      padding: 11px 8px;
+      border-radius: 12px;
+      border: 1px solid var(--card-border);
+      background: transparent;
+      color: var(--text);
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.18s;
+    }
+    .io-btn:active { background: rgba(74,222,128,0.08); border-color: var(--green); color: var(--green); }
+    .io-hint { font-size: 0.72rem; color: var(--muted); line-height: 1.6; }
+
     /* ── Draw mode selector ── */
     .mode-selector {
       display: flex;
@@ -751,6 +776,16 @@
         <button class="star-btn" onclick="setNewStars(3)" id="fStar3">★</button>
       </div>
       <button class="btn-primary" style="margin-bottom:0" id="formSubmitBtn" onclick="addEx()">新增</button>
+    </div>
+
+    <div class="io-section">
+      <div class="io-title">備份與還原</div>
+      <div class="io-row">
+        <button class="io-btn" onclick="exportList()">⬇ 匯出清單</button>
+        <button class="io-btn" onclick="document.getElementById('importFile').click()">⬆ 匯入清單</button>
+        <input type="file" id="importFile" accept=".json" style="display:none" onchange="importList(event)">
+      </div>
+      <div class="io-hint">匯出的 .json 檔可在其他裝置或瀏覽器匯入，還原你的運動清單</div>
     </div>
   </div>
 </div>
@@ -1309,6 +1344,45 @@ function backdropClose(e,id) { if(e.target===document.getElementById(id)) closeS
 /* ══════════════════════════════════════════════
    FORMAT HELPERS
 ══════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════
+   EXPORT / IMPORT
+══════════════════════════════════════════════ */
+function exportList() {
+  const data = { version: 1, exercises, exportedAt: new Date().toISOString() };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  const date = new Date().toISOString().slice(0,10);
+  a.href     = url;
+  a.download = `運動抽籤-${date}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('✅ 清單已匯出！');
+}
+
+function importList(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const data = JSON.parse(ev.target.result);
+      const list = data.exercises || data; // 相容直接是陣列的格式
+      if (!Array.isArray(list) || !list.length) throw new Error('格式不符');
+      exercises = list.map(ex => ({ stars:1, tags:[], ...ex }));
+      nextId    = exercises.reduce((m,e)=>Math.max(m,e.id),0)+1;
+      lsSet('exercises', exercises);
+      renderExList();
+      renderFilterChips();
+      showToast(`✅ 已匯入 ${exercises.length} 個運動！`);
+    } catch(err) {
+      alert('匯入失敗，請確認檔案格式正確。');
+    }
+    e.target.value = ''; // 讓同一個檔案可以重複匯入
+  };
+  reader.readAsText(file);
+}
+
 function fmtTimer(s) {
   if(s>=60){ return `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`; }
   return String(s);
