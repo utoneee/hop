@@ -802,9 +802,9 @@
       <span class="sheet-title">✅ 今日完成</span>
       <button class="btn-close" onclick="closeSheet('doneSheetEl')">✕</button>
     </div>
+    <button class="io-btn" style="margin-bottom:14px;width:100%" onclick="copyDoneText()" id="btnCopyText">📋 複製文字紀錄</button>
     <div id="doneStatsEl"></div>
     <div id="doneListEl"></div>
-    <button class="io-btn" style="margin-top:14px;width:100%" onclick="copyDoneText()" id="btnCopyText" style="display:none">📋 複製文字紀錄</button>
   </div>
 </div>
 
@@ -1344,6 +1344,7 @@ function openDoneSheet() {
         </div>`).join('')
     : '<div class="empty-msg">還沒完成任何任務 💪<br>去抽一張吧！</div>';
   document.getElementById('btnCopyText').style.display = doneList.length ? 'block' : 'none';
+
   openSheet('doneSheetEl');
 }
 
@@ -1375,7 +1376,7 @@ function copyDoneText() {
 
   const lines = grouped.map(d => {
     const repeat = d.count > 1 ? ` ×${d.count}` : '';
-    return `· ${d.emoji} ${d.name}　${starStr(d.stars||1)}　${fmtMeta(d)}${repeat}`;
+    return `· ${d.name}　${starStr(d.stars||1)}　${fmtMeta(d)}${repeat}`;
   });
 
   const text = [
