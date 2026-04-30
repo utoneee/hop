@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
-  <title>運動抽籤</title>
+  <title>Hop</title>
   <style>
     :root {
       --bg:          #080f09;
@@ -688,7 +688,7 @@
 
   <!-- ── Header ── -->
   <div class="header">
-    <span class="header-title">運 動 抽 籤</span>
+    <span class="header-title">Hop</span>
     <button class="btn-icon" onclick="openSettings()" title="設定">⚙️</button>
   </div>
 
@@ -1204,7 +1204,7 @@ function openSettings() {
   renderExList();
   applyModeUI();
   const nameEl = document.getElementById('exportName');
-  if (nameEl && !nameEl.value) nameEl.value = `運動抽籤-${new Date().toISOString().slice(0,10)}`;
+  if (nameEl && !nameEl.value) nameEl.value = `Hop-${new Date().toISOString().slice(0,10)}`;
   openSheet('settingsSheet');
 }
 function closeSettings() { closeSheet('settingsSheet'); }
@@ -1400,7 +1400,7 @@ function copyDoneText() {
 
 function exportList() {
   const input    = document.getElementById('exportName');
-  const filename = (input?.value.trim() || `運動抽籤-${new Date().toISOString().slice(0,10)}`);
+  const filename = (input?.value.trim() || `Hop-${new Date().toISOString().slice(0,10)}`);
   const data     = { version: 1, exercises, exportedAt: new Date().toISOString() };
   const blob     = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
   const url      = URL.createObjectURL(blob);
