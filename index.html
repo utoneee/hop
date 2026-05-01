@@ -7,14 +7,16 @@
   <title>Hop</title>
   <style>
     :root {
-      --bg:          #0d1f10;
-      --bg2:         #122318;
+      --bg:          #e8e2d8;
+      --bg2:         #0d1f10;
       --green:       #4ade80;
       --green-mid:   #22c55e;
       --green-dark:  #16a34a;
       --green-glow:  rgba(74,222,128,0.28);
       --text:        #f0fff4;
+      --text-dark:   #1a1510;
       --muted:       #5a8f68;
+      --muted-light: #8a7a6a;
       --card-bg:     #1a3020;
       --card-border: rgba(74,222,128,0.28);
     }
@@ -23,8 +25,8 @@
     html, body { height: 100%; overflow: hidden; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Noto Sans TC', sans-serif;
-      background: radial-gradient(ellipse at 50% 0%, #163d1e 0%, var(--bg) 68%);
-      color: var(--text);
+      background: var(--bg);
+      color: var(--text-dark);
       min-height: 100vh;
       touch-action: manipulation;
       user-select: none;
@@ -67,22 +69,22 @@
     }
     .header-title {
       font-size: 0.85rem;
-      color: var(--muted);
+      color: var(--muted-light);
       letter-spacing: 0.16em;
       font-weight: 600;
     }
     .btn-icon {
       background: none;
-      border: 1px solid var(--card-border);
+      border: 1px solid rgba(30,77,43,0.25);
       border-radius: 50%;
       width: 42px; height: 42px;
-      color: var(--muted);
+      color: var(--muted-light);
       font-size: 1rem;
       cursor: pointer;
       display: flex; align-items: center; justify-content: center;
       transition: all 0.18s;
     }
-    .btn-icon:active { transform: scale(0.88); background: var(--card-bg); }
+    .btn-icon:active { transform: scale(0.88); background: rgba(30,77,43,0.08); }
 
     /* ── Draw Zone ── */
     .draw-zone {
@@ -112,28 +114,25 @@
     }
 
     .btn-draw {
-      width: 156px; height: 156px;
-      border-radius: 50%;
       background: transparent;
-      border: 1.5px solid rgba(74,222,128,0.22);
-      color: var(--green);
-      font-size: 3.4rem;
+      border: none;
+      color: #1e4d2b;
+      font-size: 4rem;
       font-weight: 900;
-      letter-spacing: 0.06em;
+      letter-spacing: 0.1em;
       cursor: pointer;
-      text-shadow: 0 0 28px rgba(74,222,128,0.55);
-      transition: transform 0.13s, text-shadow 0.13s, border-color 0.13s;
+      transition: transform 0.13s, opacity 0.13s;
       position: relative;
       z-index: 1;
+      padding: 20px 40px;
     }
     .btn-draw:active {
       transform: scale(0.91);
-      text-shadow: 0 0 10px rgba(74,222,128,0.25);
-      border-color: rgba(74,222,128,0.08);
+      opacity: 0.6;
     }
 
     .draw-hint {
-      color: var(--muted);
+      color: var(--muted-light);
       font-size: 0.82rem;
       letter-spacing: 0.1em;
     }
@@ -156,6 +155,7 @@
       width: 100%;
       max-width: 500px;
       background: var(--card-bg);
+      color: var(--text);
       border: 1px solid var(--card-border);
       border-bottom: none;
       border-radius: 28px 28px 0 0;
@@ -330,7 +330,8 @@
     .sheet-body {
       width: 100%;
       max-width: 500px;
-      background: var(--bg);
+      background: var(--bg2);
+      color: var(--text);
       border: 1px solid var(--card-border);
       border-bottom: none;
       border-radius: 28px 28px 0 0;
@@ -497,22 +498,22 @@
       flex-shrink: 0;
       padding: 5px 12px;
       border-radius: 20px;
-      border: 1px solid var(--card-border);
+      border: 1px solid rgba(30,77,43,0.25);
       background: transparent;
-      color: var(--muted);
+      color: var(--muted-light);
       font-size: 0.76rem;
       cursor: pointer;
       transition: all 0.18s;
       white-space: nowrap;
     }
     .fchip.active {
-      border-color: var(--green);
-      color: var(--green);
-      background: rgba(74,222,128,0.08);
+      border-color: #1e4d2b;
+      color: #1e4d2b;
+      background: rgba(30,77,43,0.08);
     }
     .fchip.star-chip { letter-spacing: 0.02em; }
-    .fchip.reset-chip { color: #374151; border-color: transparent; font-size: 0.72rem; }
-    .fchip.reset-chip.dirty { color: var(--muted); }
+    .fchip.reset-chip { color: #aaa49e; border-color: transparent; font-size: 0.72rem; }
+    .fchip.reset-chip.dirty { color: var(--muted-light); }
 
     /* ── Tag display in list/form ── */
     .tag-pill {
@@ -597,7 +598,8 @@
       letter-spacing: 0.08em;
       min-height: 1.2em;
     }
-    .remaining-hint .rem-num { color: var(--green); font-weight: 700; }
+    .remaining-hint { color: var(--muted-light); }
+    .remaining-hint .rem-num { color: #1e4d2b; font-weight: 700; }
 
     /* ── Round toast ── */
     .toast {
@@ -694,8 +696,6 @@
 
   <!-- ── Draw Zone ── -->
   <div class="draw-zone" id="drawZone">
-    <div class="draw-ring"></div>
-    <div class="draw-ring"></div>
     <button class="btn-draw" id="btnDraw" onclick="draw()">GO</button>
     <div class="draw-hint">點一下抽出今日挑戰</div>
     <div class="remaining-hint" id="remainingHint"></div>
