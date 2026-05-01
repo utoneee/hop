@@ -9,22 +9,24 @@
   <title>Hop</title>
   <style>
     :root {
-      --bg:          #0e0d0b;
-      --bg2:         #141310;
-      --sage:        #8aab8e;
-      --sage-mid:    #6d9172;
-      --sage-dark:   #4a6b4e;
-      --text:        #ede8e0;
-      --text-dim:    #b8b0a4;
-      --muted:       #6b6560;
-      --card-bg:     #161512;
-      --card-border: rgba(138,171,142,0.14);
+      --bg:          #f5f0e8;
+      --bg2:         #ece6d9;
+      --sage:        #1e4d2b;
+      --sage-mid:    #2a6338;
+      --sage-dark:   #163820;
+      --coral:       #c45e3a;
+      --coral-dark:  #a34830;
+      --text:        #1a1510;
+      --text-dim:    #4a3f34;
+      --muted:       #8a7a6a;
+      --card-bg:     #f0ebe1;
+      --card-border: rgba(30,77,43,0.13);
       --serif: 'Noto Serif TC', serif;
       --sans:  'Noto Sans TC', sans-serif;
       /* 相容別名 */
-      --green:      #8aab8e;
-      --green-mid:  #6d9172;
-      --green-dark: #4a6b4e;
+      --green:      #1e4d2b;
+      --green-mid:  #2a6338;
+      --green-dark: #163820;
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
@@ -98,7 +100,7 @@
       width: 148px; height: 148px;
       border-radius: 50%;
       background: transparent;
-      border: 1px solid rgba(138,171,142,0.25);
+      border: 1px solid rgba(30,77,43,0.22);
       color: var(--sage);
       font-family: var(--serif);
       font-size: 1.5rem;
@@ -115,12 +117,12 @@
       position: absolute;
       inset: 9px;
       border-radius: 50%;
-      border: 1px solid rgba(138,171,142,0.1);
+      border: 1px solid rgba(30,77,43,0.1);
       transition: border-color 0.18s;
     }
     .btn-draw:active {
       transform: scale(0.94);
-      border-color: rgba(138,171,142,0.1);
+      border-color: rgba(30,77,43,0.08);
       color: var(--sage-dark);
     }
 
@@ -155,7 +157,7 @@
       padding: 28px 28px 52px;
       transform: translateY(110%);
       transition: transform 0.44s cubic-bezier(0.32, 1.28, 0.6, 1);
-      box-shadow: 0 -12px 60px rgba(0,0,0,0.5);
+      box-shadow: 0 -12px 48px rgba(0,0,0,0.1);
     }
     .exercise-card.slide-in { transform: translateY(0); }
     .exercise-card.slide-out {
@@ -167,7 +169,7 @@
     /* Drag handle */
     .card-handle {
       width: 32px; height: 2px;
-      background: rgba(138,171,142,0.18);
+      background: rgba(30,77,43,0.15);
       border-radius: 1px;
       margin: 0 auto 28px;
     }
@@ -196,7 +198,7 @@
     .auto-label { font-size: 0.76rem; color: var(--muted); letter-spacing: 0.06em; }
     .toggle {
       width: 36px; height: 20px;
-      background: #222019;
+      background: #c8c0b4;
       border-radius: 10px;
       position: relative;
       transition: background 0.25s;
@@ -209,7 +211,7 @@
       top: 2px; left: 2px;
       width: 16px; height: 16px;
       border-radius: 50%;
-      background: #ede8e0;
+      background: #ffffff;
       transition: transform 0.25s;
       box-shadow: 0 1px 3px rgba(0,0,0,0.3);
     }
@@ -230,7 +232,7 @@
       letter-spacing: -0.02em;
       transition: color 0.4s;
     }
-    .timer-num.done-color { color: var(--sage); }
+    .timer-num.done-color { color: var(--coral); }
     .timer-num.count-size { font-size: 3.8rem; }
     .timer-unit { font-size: 0.72rem; color: var(--muted); letter-spacing: 0.16em; margin-top: 8px; }
 
@@ -240,7 +242,7 @@
       width: 100%;
       padding: 16px;
       border-radius: 12px;
-      border: 1px solid rgba(138,171,142,0.35);
+      border: 1px solid rgba(30,77,43,0.3);
       background: transparent;
       color: var(--sage);
       font-family: var(--sans);
@@ -251,9 +253,9 @@
       transition: transform 0.14s, border-color 0.2s, color 0.2s, background 0.2s;
       margin-bottom: 10px;
     }
-    .btn-primary:active { transform: scale(0.97); background: rgba(138,171,142,0.06); }
-    .btn-primary.paused { border-color: rgba(107,101,96,0.4); color: var(--muted); }
-    .btn-primary.danger  { border-color: rgba(180,100,90,0.4); color: #c47e78; }
+    .btn-primary:active { transform: scale(0.97); background: rgba(30,77,43,0.05); }
+    .btn-primary.paused { border-color: rgba(138,120,106,0.4); color: var(--muted); }
+    .btn-primary.danger  { border-color: rgba(196,94,58,0.5); color: var(--coral); }
 
     .btn-secondary {
       display: block;
@@ -269,8 +271,8 @@
       cursor: pointer;
       transition: all 0.2s;
     }
-    .btn-secondary:active { background: rgba(138,171,142,0.05); transform: scale(0.97); }
-    .btn-secondary.lit { border-color: rgba(138,171,142,0.35); color: var(--sage); }
+    .btn-secondary:active { background: rgba(30,77,43,0.04); transform: scale(0.97); }
+    .btn-secondary.lit { border-color: rgba(196,94,58,0.4); color: var(--coral); }
 
     /* ══════════════════════════════════
        DONE STACK (bottom-right corner)
@@ -302,8 +304,8 @@
       position: absolute;
       top: -8px; right: -8px;
       z-index: 10;
-      background: var(--sage-dark);
-      color: var(--text);
+      background: var(--coral);
+      color: #ffffff;
       font-size: 0.65rem;
       font-weight: 500;
       width: 20px; height: 20px;
@@ -345,7 +347,7 @@
     .sheet-backdrop.open .sheet-body { transform: translateY(0); }
     .sheet-body::-webkit-scrollbar { width: 3px; }
     .sheet-body::-webkit-scrollbar-track { background: transparent; }
-    .sheet-body::-webkit-scrollbar-thumb { background: rgba(138,171,142,0.15); border-radius: 2px; }
+    .sheet-body::-webkit-scrollbar-thumb { background: rgba(30,77,43,0.15); border-radius: 2px; }
 
     .sheet-head {
       display: flex;
@@ -409,8 +411,8 @@
       transition: background 0.15s, border-color 0.15s, color 0.15s;
       flex-shrink: 0; letter-spacing: 0.04em;
     }
-    .btn-edit:active  { background: rgba(138,171,142,0.07); border-color: var(--sage); color: var(--sage); }
-    .btn-edit.active  { border-color: var(--sage); color: var(--sage); background: rgba(138,171,142,0.07); }
+    .btn-edit:active  { background: rgba(30,77,43,0.06); border-color: var(--sage); color: var(--sage); }
+    .btn-edit.active  { border-color: var(--sage); color: var(--sage); background: rgba(30,77,43,0.06); }
     .btn-del  {
       background: none; border: 1px solid rgba(180,100,90,0.25); color: #a07070;
       font-size: 0.78rem; cursor: pointer; padding: 5px 9px; border-radius: 6px;
@@ -426,7 +428,7 @@
       margin-top: 16px;
       padding: 16px;
       background: var(--card-bg);
-      border: 1px solid rgba(138,171,142,0.1);
+      border: 1px solid var(--card-border);
       border-radius: 12px;
     }
     .add-form-title { font-size: 0.74rem; color: var(--muted); font-weight: 400; margin-bottom: 14px; letter-spacing: 0.14em; }
@@ -513,12 +515,12 @@
       white-space: nowrap;
     }
     .fchip.active {
-      border-color: rgba(138,171,142,0.4);
+      border-color: rgba(30,77,43,0.35);
       color: var(--sage);
-      background: rgba(138,171,142,0.07);
+      background: rgba(30,77,43,0.07);
     }
     .fchip.star-chip { letter-spacing: 0.04em; }
-    .fchip.reset-chip { color: #3a3530; border-color: transparent; font-size: 0.68rem; }
+    .fchip.reset-chip { color: #b8aea4; border-color: transparent; font-size: 0.68rem; }
     .fchip.reset-chip.dirty { color: var(--muted); }
 
     /* ── Tag display in list/form ── */
@@ -557,7 +559,7 @@
       cursor: pointer;
       transition: all 0.2s;
     }
-    .io-btn:active { background: rgba(138,171,142,0.06); border-color: rgba(138,171,142,0.3); color: var(--sage); }
+    .io-btn:active { background: rgba(30,77,43,0.05); border-color: rgba(30,77,43,0.3); color: var(--sage); }
     .io-hint { font-size: 0.68rem; color: var(--muted); line-height: 1.7; }
     .io-ext  { color: var(--muted); font-size: 0.82rem; align-self: center; flex-shrink: 0; }
 
@@ -657,7 +659,7 @@
     /* ── Stars ── */
     .stars { letter-spacing: 0.06em; font-size: 0.88rem; }
     .star-on  { color: #c4a35a; }
-    .star-off { color: #272420; }
+    .star-off { color: #cdc6bc; }
 
     /* Card stars */
     .card-stars { text-align: center; margin-bottom: 22px; font-size: 1rem; letter-spacing: 0.14em; }
@@ -686,7 +688,7 @@
       font-size: 0.82rem; color: var(--muted);
       letter-spacing: 0.06em;
     }
-    .done-stats-num { font-family: var(--serif); font-size: 1.3rem; font-weight: 400; color: #c4a35a; }
+    .done-stats-num { font-family: var(--serif); font-size: 1.3rem; font-weight: 400; color: var(--coral); }
     .done-stats-sep { color: var(--card-border); }
     .done-stats-count { font-family: var(--serif); font-size: 1.1rem; font-weight: 400; color: var(--sage); }
   </style>
@@ -807,7 +809,7 @@
     <div class="sheet-head">
       <span class="sheet-title">✅ 今日完成</span>
       <div style="display:flex;align-items:center;gap:6px">
-        <span id="copyFeedback" style="font-size:0.78rem;color:var(--green);opacity:0;transition:opacity 0.3s;white-space:nowrap">複製今日成果 ✓</span>
+        <span id="copyFeedback" style="font-size:0.78rem;color:var(--coral);opacity:0;transition:opacity 0.3s;white-space:nowrap">複製今日成果 ✓</span>
         <button class="btn-close" id="btnCopyText" onclick="copyDoneText()" title="複製今日成果" style="font-size:1.1rem">📋</button>
         <button class="btn-close" onclick="closeSheet('doneSheetEl')">✕</button>
       </div>
