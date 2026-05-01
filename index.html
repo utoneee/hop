@@ -9,24 +9,24 @@
   <title>Hop</title>
   <style>
     :root {
-      --bg:          #f5f0e8;
-      --bg2:         #ece6d9;
-      --sage:        #1e4d2b;
-      --sage-mid:    #2a6338;
-      --sage-dark:   #163820;
+      --bg:          #080f09;
+      --bg2:         #0e1a0f;
+      --sage:        #4ade80;
+      --sage-mid:    #22c55e;
+      --sage-dark:   #16a34a;
       --coral:       #c45e3a;
       --coral-dark:  #a34830;
-      --text:        #1a1510;
-      --text-dim:    #4a3f34;
-      --muted:       #6a5a4a;
-      --card-bg:     #e8e0d0;
-      --card-border: rgba(30,77,43,0.18);
+      --text:        #f0fff4;
+      --text-dim:    #c8e6cc;
+      --muted:       #5a8f68;
+      --card-bg:     #111e13;
+      --card-border: rgba(74,222,128,0.18);
       --serif: 'Noto Serif TC', serif;
       --sans:  'Noto Sans TC', sans-serif;
       /* 相容別名 */
-      --green:      #1e4d2b;
-      --green-mid:  #2a6338;
-      --green-dark: #163820;
+      --green:      #4ade80;
+      --green-mid:  #22c55e;
+      --green-dark: #16a34a;
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
@@ -65,11 +65,11 @@
       z-index: 10;
     }
     .header-title {
-      font-family: var(--serif);
-      font-size: 0.82rem;
+      font-family: var(--sans);
+      font-size: 0.85rem;
       color: var(--muted);
-      letter-spacing: 0.28em;
-      font-weight: 400;
+      letter-spacing: 0.16em;
+      font-weight: 600;
     }
     .btn-icon {
       background: none;
@@ -100,12 +100,12 @@
       width: 148px; height: 148px;
       border-radius: 50%;
       background: transparent;
-      border: 1px solid rgba(30,77,43,0.22);
+      border: 1px solid rgba(74,222,128,0.22);
       color: var(--sage);
-      font-family: var(--serif);
-      font-size: 1.5rem;
-      font-weight: 400;
-      letter-spacing: 0.22em;
+      font-family: var(--sans);
+      font-size: 2.2rem;
+      font-weight: 800;
+      letter-spacing: 0.06em;
       cursor: pointer;
       transition: transform 0.18s, border-color 0.18s, color 0.18s;
       position: relative;
@@ -117,12 +117,12 @@
       position: absolute;
       inset: 9px;
       border-radius: 50%;
-      border: 1px solid rgba(30,77,43,0.1);
+      border: 1px solid rgba(74,222,128,0.1);
       transition: border-color 0.18s;
     }
     .btn-draw:active {
       transform: scale(0.94);
-      border-color: rgba(30,77,43,0.08);
+      border-color: rgba(74,222,128,0.08);
       color: var(--sage-dark);
     }
 
@@ -157,7 +157,7 @@
       padding: 28px 28px 52px;
       transform: translateY(110%);
       transition: transform 0.44s cubic-bezier(0.32, 1.28, 0.6, 1);
-      box-shadow: 0 -12px 48px rgba(0,0,0,0.1);
+      box-shadow: 0 -12px 48px rgba(0,0,0,0.5);
     }
     .exercise-card.slide-in { transform: translateY(0); }
     .exercise-card.slide-out {
@@ -169,20 +169,20 @@
     /* Drag handle */
     .card-handle {
       width: 32px; height: 2px;
-      background: rgba(30,77,43,0.15);
+      background: rgba(74,222,128,0.18);
       border-radius: 1px;
       margin: 0 auto 28px;
     }
 
     .card-emoji { font-size: 3.2rem; text-align: center; margin-bottom: 12px; line-height: 1; }
     .card-name  {
-      font-family: var(--serif);
-      font-size: 1.9rem;
-      font-weight: 500;
+      font-family: var(--sans);
+      font-size: 2rem;
+      font-weight: 800;
       text-align: center;
-      color: var(--text);
+      color: var(--sage);
       margin-bottom: 6px;
-      letter-spacing: 0.04em;
+      letter-spacing: 0.02em;
     }
     .card-meta  { text-align: center; color: var(--muted); font-size: 0.82rem; margin-bottom: 28px; letter-spacing: 0.1em; }
 
@@ -198,7 +198,7 @@
     .auto-label { font-size: 0.76rem; color: var(--muted); letter-spacing: 0.06em; }
     .toggle {
       width: 36px; height: 20px;
-      background: #c8c0b4;
+      background: #1c3320;
       border-radius: 10px;
       position: relative;
       transition: background 0.25s;
@@ -223,9 +223,9 @@
       margin-bottom: 28px;
     }
     .timer-num {
-      font-family: var(--serif);
+      font-family: var(--sans);
       font-size: 4.8rem;
-      font-weight: 400;
+      font-weight: 800;
       font-variant-numeric: tabular-nums;
       line-height: 1;
       color: var(--text);
@@ -242,7 +242,7 @@
       width: 100%;
       padding: 16px;
       border-radius: 12px;
-      border: 1px solid rgba(30,77,43,0.3);
+      border: 1px solid rgba(74,222,128,0.3);
       background: transparent;
       color: var(--sage);
       font-family: var(--sans);
@@ -253,8 +253,8 @@
       transition: transform 0.14s, border-color 0.2s, color 0.2s, background 0.2s;
       margin-bottom: 10px;
     }
-    .btn-primary:active { transform: scale(0.97); background: rgba(30,77,43,0.05); }
-    .btn-primary.paused { border-color: rgba(138,120,106,0.4); color: var(--muted); }
+    .btn-primary:active { transform: scale(0.97); background: rgba(74,222,128,0.07); }
+    .btn-primary.paused { border-color: rgba(90,143,104,0.5); color: var(--muted); }
     .btn-primary.danger  { border-color: rgba(196,94,58,0.5); color: var(--coral); }
 
     .btn-secondary {
@@ -271,7 +271,7 @@
       cursor: pointer;
       transition: all 0.2s;
     }
-    .btn-secondary:active { background: rgba(30,77,43,0.04); transform: scale(0.97); }
+    .btn-secondary:active { background: rgba(74,222,128,0.06); transform: scale(0.97); }
     .btn-secondary.lit { border-color: rgba(196,94,58,0.4); color: var(--coral); }
 
     /* ══════════════════════════════════
@@ -347,7 +347,7 @@
     .sheet-backdrop.open .sheet-body { transform: translateY(0); }
     .sheet-body::-webkit-scrollbar { width: 3px; }
     .sheet-body::-webkit-scrollbar-track { background: transparent; }
-    .sheet-body::-webkit-scrollbar-thumb { background: rgba(30,77,43,0.15); border-radius: 2px; }
+    .sheet-body::-webkit-scrollbar-thumb { background: rgba(74,222,128,0.2); border-radius: 2px; }
 
     .sheet-head {
       display: flex;
@@ -356,11 +356,11 @@
       margin-bottom: 22px;
     }
     .sheet-title {
-      font-family: var(--serif);
+      font-family: var(--sans);
       font-size: 1rem;
-      font-weight: 500;
-      color: var(--text-dim);
-      letter-spacing: 0.1em;
+      font-weight: 700;
+      color: var(--sage);
+      letter-spacing: 0.06em;
     }
     .btn-close {
       background: none; border: none;
@@ -411,8 +411,8 @@
       transition: background 0.15s, border-color 0.15s, color 0.15s;
       flex-shrink: 0; letter-spacing: 0.04em;
     }
-    .btn-edit:active  { background: rgba(30,77,43,0.06); border-color: var(--sage); color: var(--sage); }
-    .btn-edit.active  { border-color: var(--sage); color: var(--sage); background: rgba(30,77,43,0.06); }
+    .btn-edit:active  { background: rgba(74,222,128,0.08); border-color: var(--sage); color: var(--sage); }
+    .btn-edit.active  { border-color: var(--sage); color: var(--sage); background: rgba(74,222,128,0.08); }
     .btn-del  {
       background: none; border: 1px solid rgba(180,100,90,0.25); color: #a07070;
       font-size: 0.78rem; cursor: pointer; padding: 5px 9px; border-radius: 6px;
@@ -515,12 +515,12 @@
       white-space: nowrap;
     }
     .fchip.active {
-      border-color: rgba(30,77,43,0.35);
+      border-color: rgba(74,222,128,0.4);
       color: var(--sage);
-      background: rgba(30,77,43,0.07);
+      background: rgba(74,222,128,0.08);
     }
     .fchip.star-chip { letter-spacing: 0.04em; }
-    .fchip.reset-chip { color: #b8aea4; border-color: transparent; font-size: 0.68rem; }
+    .fchip.reset-chip { color: #3a3530; border-color: transparent; font-size: 0.68rem; }
     .fchip.reset-chip.dirty { color: var(--muted); }
 
     /* ── Tag display in list/form ── */
@@ -559,7 +559,7 @@
       cursor: pointer;
       transition: all 0.2s;
     }
-    .io-btn:active { background: rgba(30,77,43,0.05); border-color: rgba(30,77,43,0.3); color: var(--sage); }
+    .io-btn:active { background: rgba(74,222,128,0.08); border-color: rgba(74,222,128,0.3); color: var(--sage); }
     .io-hint { font-size: 0.68rem; color: var(--muted); line-height: 1.7; }
     .io-ext  { color: var(--muted); font-size: 0.82rem; align-self: center; flex-shrink: 0; }
 
@@ -659,7 +659,7 @@
     /* ── Stars ── */
     .stars { letter-spacing: 0.06em; font-size: 0.88rem; }
     .star-on  { color: #c4a35a; }
-    .star-off { color: #cdc6bc; }
+    .star-off { color: #1e3320; }
 
     /* Card stars */
     .card-stars { text-align: center; margin-bottom: 22px; font-size: 1rem; letter-spacing: 0.14em; }
@@ -688,9 +688,9 @@
       font-size: 0.82rem; color: var(--muted);
       letter-spacing: 0.06em;
     }
-    .done-stats-num { font-family: var(--serif); font-size: 1.3rem; font-weight: 400; color: var(--coral); }
+    .done-stats-num { font-size: 1.3rem; font-weight: 800; color: var(--coral); }
     .done-stats-sep { color: var(--card-border); }
-    .done-stats-count { font-family: var(--serif); font-size: 1.1rem; font-weight: 400; color: var(--sage); }
+    .done-stats-count { font-size: 1.1rem; font-weight: 800; color: var(--sage); }
   </style>
 </head>
 <body>
@@ -809,7 +809,7 @@
     <div class="sheet-head">
       <span class="sheet-title">✅ 今日完成</span>
       <div style="display:flex;align-items:center;gap:6px">
-        <span id="copyFeedback" style="font-size:0.78rem;color:var(--coral);opacity:0;transition:opacity 0.3s;white-space:nowrap">複製今日成果 ✓</span>
+        <span id="copyFeedback" style="font-size:0.78rem;color:var(--sage);opacity:0;transition:opacity 0.3s;white-space:nowrap">複製今日成果 ✓</span>
         <button class="btn-close" id="btnCopyText" onclick="copyDoneText()" title="複製今日成果" style="font-size:1.1rem">📋</button>
         <button class="btn-close" onclick="closeSheet('doneSheetEl')">✕</button>
       </div>
