@@ -503,14 +503,21 @@
 
     /* ── Tag display in list/form ── */
     .tag-pill {
-      display: inline-block;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
       font-size: 0.68rem;
       color: var(--muted);
       border: 1px solid var(--card-border);
       border-radius: 10px;
       padding: 1px 7px;
       margin: 2px 2px 0 0;
+      cursor: pointer;
+      transition: border-color 0.15s, color 0.15s;
     }
+    .tag-pill:hover  { border-color: #ef4444; color: #ef4444; }
+    .tag-pill:active { opacity: 0.6; }
+    .tag-pill-x { font-size: 0.6rem; opacity: 0.7; }
     .ex-tags { margin-top: 4px; }
 
     /* ── Export / Import ── */
@@ -664,6 +671,82 @@
     .done-stats-num { font-size: 1.3rem; font-weight: 800; color: #f5ede0; }
     .done-stats-sep { color: var(--card-border); }
     .done-stats-count { font-size: 1.1rem; font-weight: 700; color: var(--green); }
+
+    /* ══════════════════════════════════
+       THEMES
+    ══════════════════════════════════ */
+    /* ── 深綠 Dark Green ── */
+    body.theme-dark {
+      --bg:          #071009;
+      --bg2:         #152b1a;
+      --accent:      #4ade80;
+      --text:        rgba(220,255,230,0.92);
+      --text-dark:   #071009;
+      --muted:       rgba(180,220,195,0.55);
+      --muted-light: rgba(180,220,195,0.72);
+      --card-bg:     #152b1a;
+      --card-border: rgba(74,222,128,0.14);
+      --green:       #4ade80;
+      --green-mid:   #22c55e;
+      --green-dark:  #166534;
+    }
+
+    /* ── 米白 Light ── */
+    body.theme-light {
+      --bg:          #f0ebe3;
+      --bg2:         #e2d9ce;
+      --accent:      #b05030;
+      --text:        #2a1f15;
+      --text-dark:   #2a1f15;
+      --muted:       #8a6f55;
+      --muted-light: #6e5440;
+      --card-bg:     #e2d9ce;
+      --card-border: rgba(42,31,21,0.18);
+      --green:       #b05030;
+      --green-mid:   #8c3e26;
+      --green-dark:  #6a2d1c;
+    }
+    /* light theme: grid lines warmer */
+    body.theme-light #app::before {
+      background-image:
+        linear-gradient(rgba(42,31,21,0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(42,31,21,0.05) 1px, transparent 1px);
+    }
+    /* light theme: f-input bg should match light card */
+    body.theme-light .f-input,
+    body.theme-light .f-select {
+      background: #f0ebe3;
+    }
+    /* light theme: hardcoded cream colors invisible on light bg */
+    body.theme-light .star-on       { color: #b05030; }
+    body.theme-light .done-stats-num { color: #b05030; }
+
+    /* dark theme: restore gold stars */
+    body.theme-dark .star-on        { color: #facc15; }
+    body.theme-dark .star-off       { color: #1e3320; }
+    body.theme-dark .done-stats-num { color: #facc15; }
+
+    /* ── Theme Swatch Row ── */
+    .theme-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .theme-label { font-size: 0.75rem; color: var(--muted); }
+    .theme-dot {
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      cursor: pointer;
+      border: 2.5px solid transparent;
+      transition: transform 0.15s, border-color 0.15s;
+      flex-shrink: 0;
+    }
+    .theme-dot:active { transform: scale(0.85); }
+    .theme-dot.active { border-color: var(--text); }
+    .theme-dot-milktea { background: radial-gradient(circle at 35% 35%, #d4a87a, #9a7050); }
+    .theme-dot-dark    { background: radial-gradient(circle at 35% 35%, #2d6a3a, #071009); }
+    .theme-dot-light   { background: radial-gradient(circle at 35% 35%, #f5ede0, #c8a880); }
   </style>
 </head>
 <body>
@@ -728,6 +811,12 @@
     <div class="sheet-head">
       <span class="sheet-title">⚙️ 運動清單</span>
       <button class="btn-close" onclick="closeSheet('settingsSheet')">✕</button>
+    </div>
+    <div class="theme-row">
+      <span class="theme-label">佈景</span>
+      <div class="theme-dot theme-dot-milktea" id="tdot-milktea" onclick="themeSwitch('milktea')" title="奶茶"></div>
+      <div class="theme-dot theme-dot-dark"    id="tdot-dark"    onclick="themeSwitch('dark')"    title="深綠"></div>
+      <div class="theme-dot theme-dot-light"   id="tdot-light"   onclick="themeSwitch('light')"   title="米白"></div>
     </div>
     <div class="mode-selector">
       <button class="mode-btn" id="modeFree"     onclick="setDrawMode('free')">🎲 自由抽</button>
@@ -843,7 +932,19 @@ function lsSet(k,v){ try{localStorage.setItem(k,JSON.stringify(v));}catch(e){} }
 /* ══════════════════════════════════════════════
    INIT
 ══════════════════════════════════════════════ */
+function themeSwitch(name) {
+  document.body.classList.remove('theme-dark','theme-light','theme-milktea');
+  if (name !== 'milktea') document.body.classList.add('theme-' + name);
+  lsSet('theme', name);
+  // update active dot
+  ['milktea','dark','light'].forEach(t => {
+    document.getElementById('tdot-' + t)?.classList.toggle('active', t === name);
+  });
+}
+
 function init() {
+  const savedTheme = lsGet('theme', 'milktea');
+  themeSwitch(savedTheme);
   applyAutoUI();
   applyStarPicker();
   renderFilterChips();
@@ -1231,7 +1332,7 @@ function renderExList() {
         <div class="ex-name">${ex.name}</div>
         <div class="ex-sub">${fmtMeta(ex)}</div>
         <div class="ex-stars">${fmtStars(ex.stars)}</div>
-        ${(ex.tags||[]).length ? `<div class="ex-tags">${(ex.tags).map(t=>`<span class="tag-pill">${t}</span>`).join('')}</div>` : ''}
+        ${(ex.tags||[]).length ? `<div class="ex-tags">${(ex.tags).map(t=>`<span class="tag-pill" onclick="removeTag(${ex.id},'${t.replace(/'/g,"\\'")}')">${t}<span class="tag-pill-x">✕</span></span>`).join('')}</div>` : ''}
       </div>
       <div style="display:flex;flex-direction:column;gap:5px;flex-shrink:0">
         <button class="btn-edit" onclick="editEx(${ex.id})">編輯</button>
@@ -1258,6 +1359,15 @@ function delEx(id) {
   exercises = exercises.filter(e=>e.id!==id);
   lsSet('exercises', exercises);
   renderExList();
+}
+
+function removeTag(id, tag) {
+  exercises = exercises.map(e =>
+    e.id===id ? {...e, tags:(e.tags||[]).filter(t=>t!==tag)} : e
+  );
+  lsSet('exercises', exercises);
+  renderExList();
+  renderFilterChips();
 }
 
 function parseTags(str) {
