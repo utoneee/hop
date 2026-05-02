@@ -17,9 +17,11 @@
       --card-bg:     #9a7050;
       --card-border: rgba(42,31,21,0.18);
       /* 相容 */
-      --green:       #c45e3a;
-      --green-mid:   #a34830;
-      --green-dark:  #7a3522;
+      --green:            #f0d5b0;
+      --green-mid:        #d4b48a;
+      --green-dark:       #b89060;
+      --star-picker-on:   #c45e3a;
+      --star-picker-off:  rgba(42,31,21,0.28);
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
@@ -80,7 +82,7 @@
       border-radius: 50%;
       width: 42px; height: 42px;
       color: var(--muted-light);
-      font-size: 1rem;
+      font-size: 1.35rem;
       cursor: pointer;
       display: flex; align-items: center; justify-content: center;
       transition: all 0.18s;
@@ -286,14 +288,14 @@
       position: absolute;
       top: -9px; right: -9px;
       z-index: 10;
-      background: var(--green);
-      color: #071009;
+      background: var(--accent);
+      color: #fff;
       font-size: 0.7rem;
       font-weight: 800;
       width: 22px; height: 22px;
       border-radius: 50%;
       display: flex; align-items: center; justify-content: center;
-      box-shadow: 0 0 8px rgba(196,94,58,0.5);
+      box-shadow: 0 0 8px rgba(196,94,58,0.4);
     }
 
     /* ══════════════════════════════════
@@ -344,11 +346,26 @@
     .sheet-title { font-size: 1.05rem; font-weight: 700; color: var(--green); }
     .btn-close {
       background: none; border: none;
-      color: var(--muted); font-size: 1.25rem;
+      color: var(--muted); font-size: 1.5rem;
       cursor: pointer; padding: 4px 8px; border-radius: 8px;
       transition: color 0.15s;
     }
     .btn-close:active { color: var(--text); }
+    .copy-btn {
+      background: none;
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 5px 13px;
+      color: var(--muted);
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: color 0.2s, border-color 0.2s;
+      white-space: nowrap;
+      letter-spacing: 0.02em;
+    }
+    .copy-btn:active  { opacity: 0.7; }
+    .copy-btn.copied  { color: var(--green); border-color: var(--green); }
 
     /* Exercise list items */
     .ex-item {
@@ -453,10 +470,19 @@
       margin-bottom: 8px;
     }
     .done-check { color: var(--green); font-size: 1rem; flex-shrink: 0; }
-    .done-info  { flex: 1; }
+    .done-info  { flex: 1; min-width: 0; }
     .done-name  { font-size: 0.92rem; font-weight: 700; }
     .done-sub   { font-size: 0.75rem; color: var(--muted); margin-top: 2px; }
     .done-emoji { font-size: 1.5rem; }
+    .done-count {
+      font-size: 1.55rem;
+      font-weight: 900;
+      color: var(--green);
+      flex-shrink: 0;
+      letter-spacing: -0.02em;
+      min-width: 2.4rem;
+      text-align: right;
+    }
 
     /* ── Filter area (main screen) ── */
     .filter-area {
@@ -517,7 +543,7 @@
     }
     .tag-pill:hover  { border-color: #ef4444; color: #ef4444; }
     .tag-pill:active { opacity: 0.6; }
-    .tag-pill-x { font-size: 0.6rem; opacity: 0.7; }
+    .tag-pill-x { font-size: 0.72rem; opacity: 0.7; }
     .ex-tags { margin-top: 4px; }
 
     /* ── Export / Import ── */
@@ -559,14 +585,14 @@
     .mode-btn {
       flex: 1;
       padding: 9px 6px;
-      border: none;
+      border: 1px solid transparent;
       border-radius: 9px;
       background: transparent;
       color: var(--muted);
       font-size: 0.82rem;
       font-weight: 600;
       cursor: pointer;
-      transition: all 0.2s;
+      transition: background 0.2s, color 0.2s, border-color 0.2s;
       text-align: center;
       line-height: 1.4;
     }
@@ -686,9 +712,11 @@
       --muted-light: rgba(180,220,195,0.72);
       --card-bg:     #152b1a;
       --card-border: rgba(74,222,128,0.14);
-      --green:       #4ade80;
-      --green-mid:   #22c55e;
-      --green-dark:  #166534;
+      --green:            #4ade80;
+      --green-mid:        #22c55e;
+      --green-dark:       #166534;
+      --star-picker-on:   #facc15;
+      --star-picker-off:  #1e3320;
     }
 
     /* ── 米白 Light ── */
@@ -702,9 +730,11 @@
       --muted-light: #6e5440;
       --card-bg:     #e2d9ce;
       --card-border: rgba(42,31,21,0.18);
-      --green:       #b05030;
-      --green-mid:   #8c3e26;
-      --green-dark:  #6a2d1c;
+      --green:            #b05030;
+      --green-mid:        #8c3e26;
+      --green-dark:       #6a2d1c;
+      --star-picker-on:   #b05030;
+      --star-picker-off:  rgba(42,31,21,0.22);
     }
     /* light theme: grid lines warmer */
     body.theme-light #app::before {
@@ -718,13 +748,76 @@
       background: #f0ebe3;
     }
     /* light theme: hardcoded cream colors invisible on light bg */
-    body.theme-light .star-on       { color: #b05030; }
+    body.theme-light .star-on        { color: #b05030; }
     body.theme-light .done-stats-num { color: #b05030; }
 
-    /* dark theme: restore gold stars */
+    /* light theme: header + filter chips → 奶茶色調 */
+    body.theme-light .header-title   { color: #b8956a; }
+    body.theme-light .btn-icon       { color: #b8956a; border-color: rgba(184,149,106,0.45); }
+    body.theme-light .fchip {
+      color: #b8956a;
+      border-color: rgba(184,149,106,0.45);
+    }
+    body.theme-light .fchip.active {
+      color: #c45e3a;
+      border-color: #c45e3a;
+      background: rgba(196,94,58,0.09);
+    }
+    body.theme-light .fchip.reset-chip { color: rgba(184,149,106,0.5); }
+    body.theme-light .fchip.reset-chip.dirty { color: #b8956a; }
+    body.theme-light .filter-sep { background: rgba(184,149,106,0.4); }
+    body.theme-light .draw-hint  { color: #b8956a; }
+    body.theme-light .remaining-hint { color: #b8956a; }
+
+    /* dark theme: restore gold stars + fix GO visibility */
     body.theme-dark .star-on        { color: #facc15; }
     body.theme-dark .star-off       { color: #1e3320; }
     body.theme-dark .done-stats-num { color: #facc15; }
+    body.theme-dark .btn-draw       { color: var(--text); }
+
+    /* ── 橘底 Orange ── */
+    body.theme-orange {
+      --bg:               #c45e3a;
+      --bg2:              #f5ede0;
+      --accent:           #c45e3a;
+      --text:             #2a1f15;
+      --text-dark:        #f5ede0;
+      --muted:            rgba(42,31,21,0.5);
+      --muted-light:      rgba(42,31,21,0.55);
+      --card-bg:          #f5ede0;
+      --card-border:      rgba(42,31,21,0.14);
+      --green:            #a84d2e;
+      --green-mid:        #8a3d20;
+      --green-dark:       #6a2d14;
+      --star-picker-on:   #c45e3a;
+      --star-picker-off:  rgba(42,31,21,0.2);
+    }
+    /* orange 主畫面（橘底）→ 文字改奶油色 */
+    body.theme-orange .header-title { color: rgba(245,237,224,0.85); }
+    body.theme-orange .btn-icon     { color: rgba(245,237,224,0.8); border-color: rgba(245,237,224,0.3); }
+    body.theme-orange .fchip        { color: rgba(245,237,224,0.75); border-color: rgba(245,237,224,0.3); }
+    body.theme-orange .fchip.active { color: #f5ede0; border-color: rgba(245,237,224,0.85); background: rgba(245,237,224,0.15); }
+    body.theme-orange .fchip.reset-chip       { color: rgba(245,237,224,0.4); border-color: transparent; }
+    body.theme-orange .fchip.reset-chip.dirty { color: rgba(245,237,224,0.8); }
+    body.theme-orange .filter-sep  { background: rgba(245,237,224,0.25); }
+    body.theme-orange .draw-hint   { color: rgba(245,237,224,0.7); }
+    body.theme-orange .remaining-hint { color: rgba(245,237,224,0.75); }
+    body.theme-orange .remaining-hint .rem-num { color: #f5ede0; font-weight: 700; }
+    /* orange 格線改奶油色 */
+    body.theme-orange #app::before {
+      background-image:
+        linear-gradient(rgba(245,237,224,0.07) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(245,237,224,0.07) 1px, transparent 1px);
+    }
+    /* orange 卡片/面板（米白底）→ 修硬編碼白色 */
+    body.theme-orange .star-on        { color: #c45e3a; }
+    body.theme-orange .star-off       { color: rgba(42,31,21,0.2); }
+    body.theme-orange .done-stats-num { color: #a84d2e; }
+    /* orange f-input：奶油底+深字 */
+    body.theme-orange .f-input,
+    body.theme-orange .f-select { background: #ede5d8; color: #2a1f15; }
+    /* orange mode-selector：在米白面板裡顯示橘色底區塊 */
+    body.theme-orange .mode-selector  { background: rgba(196,94,58,0.1); border-color: rgba(196,94,58,0.2); }
 
     /* ── Theme Swatch Row ── */
     .theme-row {
@@ -747,6 +840,7 @@
     .theme-dot-milktea { background: radial-gradient(circle at 35% 35%, #d4a87a, #9a7050); }
     .theme-dot-dark    { background: radial-gradient(circle at 35% 35%, #2d6a3a, #071009); }
     .theme-dot-light   { background: radial-gradient(circle at 35% 35%, #f5ede0, #c8a880); }
+    .theme-dot-orange  { background: radial-gradient(circle at 35% 35%, #f5ede0, #c45e3a); }
   </style>
 </head>
 <body>
@@ -755,7 +849,7 @@
   <!-- ── Header ── -->
   <div class="header">
     <span class="header-title">Hop</span>
-    <button class="btn-icon" onclick="openSettings()" title="設定">⚙️</button>
+    <button class="btn-icon" onclick="openSettings()" title="設定">≡</button>
   </div>
 
   <!-- ── Filter Area ── -->
@@ -809,7 +903,7 @@
 <div class="sheet-backdrop" id="settingsSheet" onclick="backdropClose(event,'settingsSheet')">
   <div class="sheet-body">
     <div class="sheet-head">
-      <span class="sheet-title">⚙️ 運動清單</span>
+      <span class="sheet-title">≡ 運動清單</span>
       <button class="btn-close" onclick="closeSheet('settingsSheet')">✕</button>
     </div>
     <div class="theme-row">
@@ -817,10 +911,15 @@
       <div class="theme-dot theme-dot-milktea" id="tdot-milktea" onclick="themeSwitch('milktea')" title="奶茶"></div>
       <div class="theme-dot theme-dot-dark"    id="tdot-dark"    onclick="themeSwitch('dark')"    title="深綠"></div>
       <div class="theme-dot theme-dot-light"   id="tdot-light"   onclick="themeSwitch('light')"   title="米白"></div>
+      <div class="theme-dot theme-dot-orange"  id="tdot-orange"  onclick="themeSwitch('orange')"  title="橘底米白"></div>
+      <div style="margin-left:auto;display:flex;align-items:center;gap:8px">
+        <span class="theme-label">音效</span>
+        <div class="toggle" id="soundToggle" onclick="toggleSound()" style="cursor:pointer"></div>
+      </div>
     </div>
     <div class="mode-selector">
-      <button class="mode-btn" id="modeFree"     onclick="setDrawMode('free')">🎲 自由抽</button>
-      <button class="mode-btn" id="modeNorepeat" onclick="setDrawMode('norepeat')">🔄 輪替制</button>
+      <button class="mode-btn" id="modeFree"     onclick="setDrawMode('free')">◎ 自由抽</button>
+      <button class="mode-btn" id="modeNorepeat" onclick="setDrawMode('norepeat')">↻ 輪替制</button>
     </div>
     <div class="mode-desc" id="modeDesc"></div>
     <div id="exListEl"></div>
@@ -869,10 +968,9 @@
 <div class="sheet-backdrop" id="doneSheetEl" onclick="backdropClose(event,'doneSheetEl')">
   <div class="sheet-body">
     <div class="sheet-head">
-      <span class="sheet-title">✅ 今日完成</span>
+      <span class="sheet-title">✅ 已完成</span>
       <div style="display:flex;align-items:center;gap:6px">
-        <span id="copyFeedback" style="font-size:0.78rem;color:var(--green);opacity:0;transition:opacity 0.3s;white-space:nowrap">複製今日成果 ✓</span>
-        <button class="btn-close" id="btnCopyText" onclick="copyDoneText()" title="複製今日成果" style="font-size:1.1rem">📋</button>
+        <button class="copy-btn" id="btnCopyText" onclick="copyDoneText()">複製成果 📋</button>
         <button class="btn-close" onclick="closeSheet('doneSheetEl')">✕</button>
       </div>
     </div>
@@ -901,7 +999,11 @@ const DEFAULTS = [
 /* ══════════════════════════════════════════════
    STATE
 ══════════════════════════════════════════════ */
-let exercises  = lsGet('exercises', DEFAULTS).map(e=>({stars:1,tags:[],...e})); // migrate old data
+let exercises  = lsGet('exercises', DEFAULTS).map(e=>{
+  const ex = {stars:1, tags:[], ...e};
+  ex.tags = (ex.tags||[]).map(t=>t.trim()).filter(Boolean); // 清除空標籤
+  return ex;
+}); // migrate old data
 let autoStart  = lsGet('autoStart', false);
 let doneList   = [];       // session only
 let nextId     = exercises.reduce((m,e)=>Math.max(m,e.id),0)+1;
@@ -912,6 +1014,9 @@ let completedIds  = new Set();   // done this round (norepeat mode)
 let sessionCounts = {};          // {id: completedCount} for ×N display
 let selTags       = new Set();   // selected tag filters
 let selStars      = new Set();   // selected star filters
+
+let soundOn    = lsGet('soundOn', true);
+let _audioCtx  = null;     // persisted AudioContext (iOS unlock)
 
 let current    = null;     // current exercise object
 let isCount    = false;    // count mode vs timer mode
@@ -933,13 +1038,13 @@ function lsSet(k,v){ try{localStorage.setItem(k,JSON.stringify(v));}catch(e){} }
    INIT
 ══════════════════════════════════════════════ */
 function themeSwitch(name) {
-  document.body.classList.remove('theme-dark','theme-light','theme-milktea');
+  document.body.classList.remove('theme-dark','theme-light','theme-orange');
   if (name !== 'milktea') document.body.classList.add('theme-' + name);
   lsSet('theme', name);
-  // update active dot
-  ['milktea','dark','light'].forEach(t => {
+  ['milktea','dark','light','orange'].forEach(t => {
     document.getElementById('tdot-' + t)?.classList.toggle('active', t === name);
   });
+  applyStarPicker(); // 跟上主題換色
 }
 
 function init() {
@@ -947,6 +1052,7 @@ function init() {
   themeSwitch(savedTheme);
   applyAutoUI();
   applyStarPicker();
+  applySoundUI();
   renderFilterChips();
   updateRemainingHint();
 }
@@ -1079,9 +1185,12 @@ function setNewStars(n) {
   applyStarPicker();
 }
 function applyStarPicker() {
+  const s = getComputedStyle(document.body);
+  const on  = s.getPropertyValue('--star-picker-on').trim()  || '#c45e3a';
+  const off = s.getPropertyValue('--star-picker-off').trim() || 'rgba(42,31,21,0.28)';
   [1,2,3].forEach(i=>{
     const el = document.getElementById('fStar'+i);
-    if(el) el.style.color = i<=newStars ? '#f5ede0' : 'rgba(245,237,224,0.3)';
+    if(el) el.style.color = i<=newStars ? on : off;
   });
 }
 
@@ -1216,9 +1325,28 @@ function onTimerEnd() {
   beep();
 }
 
+/* ── Audio ── */
+function getAudio() {
+  if (!_audioCtx) _audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+  if (_audioCtx.state === 'suspended') _audioCtx.resume();
+  return _audioCtx;
+}
+// iOS unlock: 第一次 touch 就建好 context
+document.addEventListener('touchstart', ()=>{ try{getAudio();}catch(e){} }, {once:true, passive:true});
+
+function toggleSound() {
+  soundOn = !soundOn;
+  lsSet('soundOn', soundOn);
+  applySoundUI();
+}
+function applySoundUI() {
+  document.getElementById('soundToggle')?.classList.toggle('on', soundOn);
+}
+
 function beep() {
+  if (!soundOn) return;
   try {
-    const ctx = new (window.AudioContext||window.webkitAudioContext)();
+    const ctx = getAudio();
     [[880,0,0.5],[1100,0.18,0.38]].forEach(([freq,start,end])=>{
       const o=ctx.createOscillator(), g=ctx.createGain();
       o.connect(g); g.connect(ctx.destination);
@@ -1229,6 +1357,57 @@ function beep() {
       o.stop(ctx.currentTime+end+0.05);
     });
   } catch(e){}
+}
+
+/* ── Confetti ── */
+function showConfetti() {
+  const COLORS = ['#FFD700','#FF6B6B','#4ECDC4','#F9CA24','#c45e3a','#f0d5b0','#a8e6cf','#ff8b94','#fff'];
+  const W = window.innerWidth, H = window.innerHeight;
+  const particles = [];
+
+  // 改用獨立 div，每個都是 position:fixed z-index:9999，不受 sheet transform 影響
+  [0.05, 0.95].forEach(xF => {
+    for (let i = 0; i < 38; i++) {
+      const size = Math.random()*9 + 4;
+      const isCircle = Math.random() < 0.28;
+      const el = document.createElement('div');
+      el.style.cssText = [
+        'position:fixed', 'left:0', 'top:0',
+        `width:${size}px`, `height:${isCircle ? size : size*0.45}px`,
+        `background:${COLORS[Math.floor(Math.random()*COLORS.length)]}`,
+        `border-radius:${isCircle ? '50%' : '2px'}`,
+        'z-index:9999', 'pointer-events:none', 'will-change:transform',
+      ].join(';');
+      document.body.appendChild(el);
+
+      const baseAngle = xF < 0.5 ? -Math.PI*0.3 : -Math.PI*0.7; // 左→右上，右→左上（往中間）
+      const angle = baseAngle + (Math.random()-0.5)*0.6;
+      const spd   = Math.random()*14 + 8;
+      particles.push({
+        el,
+        x: W*xF, y: H*0.88,      // 從底角射出
+        vx: Math.cos(angle)*spd, vy: Math.sin(angle)*spd,
+        rot: Math.random()*360, rotV: (Math.random()-0.5)*14,
+      });
+    }
+  });
+
+  let t = 0;
+  (function frame() {
+    let alive = false;
+    particles.forEach(p => {
+      p.x += p.vx; p.y += p.vy;
+      p.vy += 0.36; p.vx *= 0.99;
+      p.rot += p.rotV;
+      const alpha = Math.max(0, 1 - t/130);
+      if (alpha > 0) alive = true;
+      p.el.style.transform = `translate(${p.x}px,${p.y}px) rotate(${p.rot}deg)`;
+      p.el.style.opacity   = alpha;
+    });
+    t++;
+    if (alive && t < 200) requestAnimationFrame(frame);
+    else particles.forEach(p => p.el.remove());
+  })();
 }
 
 /* ══════════════════════════════════════════════
@@ -1332,7 +1511,7 @@ function renderExList() {
         <div class="ex-name">${ex.name}</div>
         <div class="ex-sub">${fmtMeta(ex)}</div>
         <div class="ex-stars">${fmtStars(ex.stars)}</div>
-        ${(ex.tags||[]).length ? `<div class="ex-tags">${(ex.tags).map(t=>`<span class="tag-pill" onclick="removeTag(${ex.id},'${t.replace(/'/g,"\\'")}')">${t}<span class="tag-pill-x">✕</span></span>`).join('')}</div>` : ''}
+        ${(ex.tags||[]).filter(Boolean).length ? `<div class="ex-tags">${(ex.tags).filter(Boolean).map(t=>`<span class="tag-pill" onclick="removeTag(${ex.id},'${t.replace(/'/g,"\\'")}')">${t}<span class="tag-pill-x">✕</span></span>`).join('')}</div>` : ''}
       </div>
       <div style="display:flex;flex-direction:column;gap:5px;flex-shrink:0">
         <button class="btn-edit" onclick="editEx(${ex.id})">編輯</button>
@@ -1458,19 +1637,23 @@ function openDoneSheet() {
         <div class="done-item">
           <span class="done-emoji">${d.emoji}</span>
           <div class="done-info">
-            <div class="done-name">${d.name}${d.count>1?` <span style="color:var(--muted);font-size:0.82rem">×${d.count}</span>`:''}</div>
-            <div class="done-sub">${d.at} · ${fmtMeta(d)}</div>
+            <div class="done-name">${d.name}</div>
+            <div class="done-sub">${fmtMeta(d)}</div>
             <div style="margin-top:3px">${fmtStars(d.stars)}</div>
           </div>
-          <span class="done-check">·</span>
+          ${d.count>1 ? `<span class="done-count">×${d.count}</span>` : ''}
         </div>`).join('')
     : '<div class="empty-msg">還沒完成任何任務 💪<br>去抽一張吧！</div>';
   const copyBtn = document.getElementById('btnCopyText');
-  if (copyBtn) copyBtn.style.visibility = doneList.length ? 'visible' : 'hidden';
-  const fb = document.getElementById('copyFeedback');
-  if (fb) { fb.style.opacity = '0'; clearTimeout(fb._t); }
+  if (copyBtn) {
+    copyBtn.style.visibility = doneList.length ? 'visible' : 'hidden';
+    copyBtn.innerHTML = '複製成果 📋';
+    copyBtn.classList.remove('copied');
+    clearTimeout(copyBtn._t);
+  }
 
   openSheet('doneSheetEl');
+  if (doneList.length > 0) setTimeout(showConfetti, 180); // 等 sheet 開啟動畫後才撒花
 }
 
 /* ══════════════════════════════════════════════
@@ -1513,11 +1696,15 @@ function copyDoneText() {
   ].join('\n');
 
   const showCopyFeedback = () => {
-    const fb = document.getElementById('copyFeedback');
-    if (!fb) return;
-    fb.style.opacity = '1';
-    clearTimeout(fb._t);
-    fb._t = setTimeout(() => { fb.style.opacity = '0'; }, 2000);
+    const btn = document.getElementById('btnCopyText');
+    if (!btn) return;
+    btn.innerHTML = '✓ 已複製';
+    btn.classList.add('copied');
+    clearTimeout(btn._t);
+    btn._t = setTimeout(() => {
+      btn.innerHTML = '複製成果 📋';
+      btn.classList.remove('copied');
+    }, 2200);
   };
   navigator.clipboard.writeText(text).then(showCopyFeedback).catch(()=>{
     // fallback
