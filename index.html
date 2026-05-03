@@ -1139,14 +1139,17 @@ function renderFilterChips() {
 function toggleTagFilter(tag) {
   selTags.has(tag) ? selTags.delete(tag) : selTags.add(tag);
   renderFilterChips();
+  updateRemainingHint();
 }
 function toggleStarFilter(s) {
   selStars.has(s) ? selStars.delete(s) : selStars.add(s);
   renderFilterChips();
+  updateRemainingHint();
 }
 function clearFilters() {
   selTags.clear(); selStars.clear();
   renderFilterChips();
+  updateRemainingHint();
 }
 
 function getFilteredPool() {
@@ -1560,6 +1563,8 @@ function delEx(id) {
   exercises = exercises.filter(e=>e.id!==id);
   lsSet('exercises', exercises);
   renderExList();
+  renderFilterChips();
+  updateRemainingHint();
 }
 
 function removeTag(id, tag) {
@@ -1569,6 +1574,7 @@ function removeTag(id, tag) {
   lsSet('exercises', exercises);
   renderExList();
   renderFilterChips();
+  updateRemainingHint();
 }
 
 function parseTags(str) {
@@ -1593,6 +1599,7 @@ function addEx() {
   lsSet('exercises', exercises);
   renderExList();
   renderFilterChips();
+  updateRemainingHint();
   resetForm();
 }
 
@@ -1763,9 +1770,12 @@ function importList(e) {
       if (!Array.isArray(list) || !list.length) throw new Error('格式不符');
       exercises = list.map(ex => ({ stars:1, tags:[], ...ex }));
       nextId    = exercises.reduce((m,e)=>Math.max(m,e.id),0)+1;
+      completedIds.clear();
+      selTags.clear(); selStars.clear();
       lsSet('exercises', exercises);
       renderExList();
       renderFilterChips();
+      updateRemainingHint();
       showToast(`✅ 已匯入 ${exercises.length} 個運動！`);
     } catch(err) {
       alert('匯入失敗，請確認檔案格式正確。');
@@ -1779,9 +1789,12 @@ function resetToDefaults() {
   if (!confirm('確定重置為預設清單？目前的自訂項目將會刪除。')) return;
   exercises = DEFAULTS.map(e => ({...e, tags:[...e.tags]}));
   nextId    = exercises.reduce((m,e)=>Math.max(m,e.id),0)+1;
+  completedIds.clear();
+  selTags.clear(); selStars.clear();
   lsSet('exercises', exercises);
   renderExList();
   renderFilterChips();
+  updateRemainingHint();
   showToast('✅ 已重置為預設清單');
 }
 
