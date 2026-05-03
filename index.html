@@ -7,21 +7,22 @@
   <title>Hop</title>
   <style>
     :root {
-      --bg:          #f5ede0;
-      --bg2:         #9a7050;
-      --accent:      #c45e3a;
-      --text:        #f5ede0;
-      --text-dark:   #2a1f15;
-      --muted:       #c8a880;
-      --muted-light: #b8956a;
-      --card-bg:     #9a7050;
-      --card-border: rgba(42,31,21,0.18);
+      /* ── 布丁 Pudding ── */
+      --bg:               #de9c21;   /* 布丁黃 */
+      --bg2:              #563f22;   /* 焦糖咖色（底板） */
+      --accent:           #7a4808;   /* 深焦糖（主畫面用，黃底上可見） */
+      --text:             #f5e5b8;   /* 溫奶油（深色卡片上的文字） */
+      --text-dark:        #2c1a04;   /* 深巧克力（黃底上的文字） */
+      --muted:            rgba(245,229,184,0.82);  /* 奶油（深色卡片輔助文字） */
+      --muted-light:      #7a4e10;   /* 深金棕（黃底上的輔助文字） */
+      --card-bg:          #563f22;   /* 卡片咖色 */
+      --card-border:      rgba(245,229,184,0.18);
       /* 相容 */
-      --green:            #f0d5b0;
-      --green-mid:        #d4b48a;
-      --green-dark:       #b89060;
-      --star-picker-on:   #c45e3a;
-      --star-picker-off:  rgba(42,31,21,0.28);
+      --green:            #f5e5b8;   /* 奶油（卡片強調文字/邊框） */
+      --green-mid:        #d4c080;
+      --green-dark:       #a89040;
+      --star-picker-on:   #f5e5b8;
+      --star-picker-off:  rgba(245,229,184,0.25);
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
@@ -54,8 +55,8 @@
       position: fixed;
       inset: 0;
       background-image:
-        linear-gradient(rgba(154,112,80,0.07) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(154,112,80,0.07) 1px, transparent 1px);
+        linear-gradient(rgba(44,26,4,0.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(44,26,4,0.06) 1px, transparent 1px);
       background-size: 40px 40px;
       pointer-events: none;
     }
@@ -429,6 +430,7 @@
       border-radius: 16px;
     }
     .add-form-title { font-size: 0.82rem; color: var(--muted); font-weight: 700; margin-bottom: 12px; letter-spacing: 0.06em; }
+    .f-input::placeholder { color: var(--muted-light); opacity: 1; }
     .form-row { display: flex; gap: 8px; margin-bottom: 9px; flex-wrap: wrap; }
     .f-input, .f-select {
       flex: 1; min-width: 70px;
@@ -521,7 +523,7 @@
     .fchip.active {
       border-color: var(--accent);
       color: var(--accent);
-      background: rgba(196,94,58,0.1);
+      background: rgba(44,26,4,0.1);
     }
     .fchip.star-chip { letter-spacing: 0.02em; }
     .fchip.reset-chip { color: #aaa49e; border-color: transparent; font-size: 0.72rem; }
@@ -837,10 +839,10 @@
     }
     .theme-dot:active { transform: scale(0.85); }
     .theme-dot.active { border-color: var(--text); }
-    .theme-dot-milktea { background: radial-gradient(circle at 35% 35%, #d4a87a, #9a7050); }
-    .theme-dot-dark    { background: radial-gradient(circle at 35% 35%, #2d6a3a, #071009); }
-    .theme-dot-light   { background: radial-gradient(circle at 35% 35%, #f5ede0, #c8a880); }
-    .theme-dot-orange  { background: radial-gradient(circle at 35% 35%, #f5ede0, #c45e3a); }
+    .theme-dot-milktea { background: #de9c21; }   /* 布丁黃 */
+    .theme-dot-dark    { background: #152b1a; }   /* 深綠 */
+    .theme-dot-light   { background: #9a7050; }   /* 奶茶褐 */
+    .theme-dot-orange  { background: #c45e3a; }   /* 泰奶橘 */
   </style>
 </head>
 <body>
@@ -908,10 +910,10 @@
     </div>
     <div class="theme-row">
       <span class="theme-label">佈景</span>
-      <div class="theme-dot theme-dot-milktea" id="tdot-milktea" onclick="themeSwitch('milktea')" title="奶茶"></div>
+      <div class="theme-dot theme-dot-orange"  id="tdot-orange"  onclick="themeSwitch('orange')"  title="泰奶"></div>
       <div class="theme-dot theme-dot-dark"    id="tdot-dark"    onclick="themeSwitch('dark')"    title="深綠"></div>
-      <div class="theme-dot theme-dot-light"   id="tdot-light"   onclick="themeSwitch('light')"   title="米白"></div>
-      <div class="theme-dot theme-dot-orange"  id="tdot-orange"  onclick="themeSwitch('orange')"  title="橘底米白"></div>
+      <div class="theme-dot theme-dot-milktea" id="tdot-milktea" onclick="themeSwitch('milktea')" title="布丁"></div>
+      <div class="theme-dot theme-dot-light"   id="tdot-light"   onclick="themeSwitch('light')"   title="奶茶"></div>
       <div style="margin-left:auto;display:flex;align-items:center;gap:8px">
         <span class="theme-label">音效</span>
         <div class="toggle" id="soundToggle" onclick="toggleSound()" style="cursor:pointer"></div>
@@ -960,6 +962,9 @@
         <input type="file" id="importFile" accept=".json" style="display:none" onchange="importList(event)">
       </div>
       <div class="io-hint">匯出的 .json 檔可在其他裝置或瀏覽器匯入，還原你的運動清單</div>
+      <div class="io-row" style="margin-top:4px">
+        <button class="io-btn" style="color:#ef4444;border-color:rgba(239,68,68,0.3)" onclick="resetToDefaults()">↺ 重置為預設清單</button>
+      </div>
     </div>
   </div>
 </div>
@@ -984,16 +989,33 @@
    DATA
 ══════════════════════════════════════════════ */
 const DEFAULTS = [
-  { id:1,  emoji:'🤸', name:'開合跳',   type:'timer', value:30,  stars:2, tags:['有氧','全身'] },
-  { id:2,  emoji:'🏃', name:'超慢跑',   type:'timer', value:300, stars:3, tags:['有氧','低強度'] },
-  { id:3,  emoji:'🦵', name:'深蹲',     type:'count', value:20,  stars:2, tags:['下肢','肌力'] },
-  { id:4,  emoji:'🧘', name:'全身伸展', type:'timer', value:60,  stars:1, tags:['伸展','收操'] },
-  { id:5,  emoji:'🦿', name:'高抬腿',   type:'timer', value:30,  stars:2, tags:['有氧','下肢'] },
-  { id:6,  emoji:'💪', name:'平板支撐', type:'timer', value:30,  stars:3, tags:['核心','肌力'] },
-  { id:7,  emoji:'⚡', name:'原地跳繩', type:'timer', value:60,  stars:3, tags:['有氧','全身'] },
-  { id:8,  emoji:'🫨', name:'抖腿甩手', type:'timer', value:30,  stars:1, tags:['放鬆','低強度'] },
-  { id:9,  emoji:'🙆', name:'手臂繞圈', type:'count', value:15,  stars:1, tags:['上肢','伸展'] },
-  { id:10, emoji:'🚶', name:'原地踏步', type:'timer', value:60,  stars:1, tags:['有氧','低強度'] },
+  // ── 原有項目 ──
+  { id:1,  emoji:'🤸', name:'開合跳',       type:'timer', value:30,  stars:2, tags:['有氧','全身'] },
+  { id:2,  emoji:'🏃', name:'超慢跑',       type:'timer', value:300, stars:3, tags:['有氧','低強度'] },
+  { id:3,  emoji:'🦵', name:'深蹲',         type:'count', value:20,  stars:2, tags:['下肢','肌力'] },
+  { id:4,  emoji:'🧘', name:'全身伸展',     type:'timer', value:60,  stars:1, tags:['伸展','收操'] },
+  { id:5,  emoji:'🦿', name:'高抬腿',       type:'timer', value:30,  stars:2, tags:['有氧','下肢'] },
+  { id:6,  emoji:'💪', name:'平板支撐',     type:'timer', value:30,  stars:3, tags:['核心','肌力'] },
+  { id:7,  emoji:'⚡', name:'原地跳繩',     type:'timer', value:60,  stars:3, tags:['有氧','全身'] },
+  { id:8,  emoji:'🫨', name:'抖腿甩手',     type:'timer', value:30,  stars:1, tags:['放鬆','低強度'] },
+  { id:9,  emoji:'🙆', name:'手臂繞圈',     type:'count', value:15,  stars:1, tags:['上肢','伸展'] },
+  { id:10, emoji:'🚶', name:'原地踏步',     type:'timer', value:60,  stars:1, tags:['有氧','低強度'] },
+  // ── 新增項目 ──
+  { id:11, emoji:'🤸', name:'原地開合跳',   type:'count', value:10,  stars:1, tags:['有氧','全身'] },
+  { id:12, emoji:'🏃', name:'原地高抬腿',   type:'count', value:20,  stars:2, tags:['有氧','下肢'] },
+  { id:13, emoji:'🏹', name:'弓箭步蹲',     type:'count', value:10,  stars:2, tags:['下肢','肌力'] },
+  { id:14, emoji:'🪑', name:'椅子坐站',     type:'count', value:10,  stars:1, tags:['下肢','低強度'] },
+  { id:15, emoji:'🦾', name:'側抬腿',       type:'count', value:10,  stars:1, tags:['下肢','伸展'] },
+  { id:16, emoji:'🙋', name:'站姿後拉背',   type:'count', value:15,  stars:1, tags:['上肢','伸展'] },
+  { id:17, emoji:'⚡', name:'原地小跳',     type:'count', value:20,  stars:2, tags:['有氧','全身'] },
+  { id:18, emoji:'🦶', name:'墊腳',         type:'count', value:15,  stars:1, tags:['下肢','低強度'] },
+  { id:19, emoji:'🧘', name:'站姿側彎',     type:'count', value:10,  stars:1, tags:['伸展','核心'] },
+  { id:20, emoji:'🦘', name:'站姿收腹抬膝', type:'count', value:20,  stars:2, tags:['核心','下肢'] },
+  { id:21, emoji:'👊', name:'空氣拳擊',     type:'timer', value:30,  stars:2, tags:['有氧','上肢'] },
+  { id:22, emoji:'🦵', name:'原地後踢腿',   type:'count', value:20,  stars:2, tags:['有氧','下肢'] },
+  { id:23, emoji:'🧘', name:'站姿轉體',     type:'count', value:20,  stars:1, tags:['核心','伸展'] },
+  { id:24, emoji:'🏋️', name:'半蹲停留',     type:'timer', value:20,  stars:2, tags:['下肢','肌力'] },
+  { id:25, emoji:'🤜', name:'手肘碰膝',     type:'count', value:20,  stars:2, tags:['核心','有氧'] },
 ];
 
 /* ══════════════════════════════════════════════
@@ -1751,6 +1773,16 @@ function importList(e) {
     e.target.value = ''; // 讓同一個檔案可以重複匯入
   };
   reader.readAsText(file);
+}
+
+function resetToDefaults() {
+  if (!confirm('確定重置為預設清單？目前的自訂項目將會刪除。')) return;
+  exercises = DEFAULTS.map(e => ({...e, tags:[...e.tags]}));
+  nextId    = exercises.reduce((m,e)=>Math.max(m,e.id),0)+1;
+  lsSet('exercises', exercises);
+  renderExList();
+  renderFilterChips();
+  showToast('✅ 已重置為預設清單');
 }
 
 function fmtTimer(s) {
