@@ -1345,8 +1345,6 @@ function onTimerEnd() {
   document.getElementById('btnAction').textContent = '↺ 再來一次';
   document.getElementById('btnAction').className   = 'btn-primary paused';
   document.getElementById('btnDone').className     = 'btn-secondary lit';
-  // Haptic + audio
-  try { navigator.vibrate([180,80,180]); } catch(e){}
   beep();
 }
 
